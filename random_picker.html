@@ -370,7 +370,10 @@ input[type=file] { display: none; }
       <span class="app-title">出席番号くじ引き</span>
       <span class="app-sub">random pick</span>
     </div>
-    <span id="sync-status" style="font-size:11px;color:#A09F9A;"></span>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <button id="migrate-btn" onclick="migrateLocal()" style="display:none;font-size:11px;padding:3px 10px;border-radius:6px;border:0.5px solid rgba(0,0,0,0.18);background:transparent;color:#6B6A65;cursor:pointer;font-family:inherit;">📤 ローカルデータを移行</button>
+      <span id="sync-status" style="font-size:11px;color:#A09F9A;"></span>
+    </div>
   </div>
 
   <!-- タブ -->
@@ -531,11 +534,37 @@ function saveState() {
 }
 
 // ── 初期化
+async function migrateLocal(){
+  if(!gistEnabled()){alert('クラウド同期が設定されていません');return;}
+  try{
+    const s=localStorage.getItem(STORAGE_KEY);
+    if(!s){alert('移行するローカルデータがありません');return;}
+    const local=JSON.parse(s);
+    if(!local.courses||local.courses.length===0){alert('移行するローカルデータがありません');return;}
+    if(!confirm(`ローカルの講座データ ${local.courses.length} 件をクラウドに移行します。
+既存のクラウドデータは上書きされます。よろしいですか？`))return;
+    state=local;
+    saveState();
+    alert('移行完了！');
+    renderAll();
+  }catch(e){alert('移行に失敗しました');}
+}
+
 async function init() {
   renderColorPresets();
   await loadState();
   const el=document.getElementById('sync-status');
   if(el)el.textContent=gistEnabled()?'☁️ クラウド同期':'📴 ローカル保存';
+  if(gistEnabled()){
+    try{
+      const s=localStorage.getItem(STORAGE_KEY);
+      const local=s?JSON.parse(s):null;
+      if(local&&local.courses&&local.courses.length>0){
+        const btn=document.getElementById('migrate-btn');
+        if(btn)btn.style.display='';
+      }
+    }catch(e){}
+  }
   if (state.courses.length === 0) addCourse('新しい講座');
   else currentId = state.courses[0].id;
   renderAll();

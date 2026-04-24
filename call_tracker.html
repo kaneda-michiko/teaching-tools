@@ -92,6 +92,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     <div class="top-bar">
       <h2>発言記録</h2>
       <span id="sync-status" style="font-size:11px;color:#A09F9A;"></span>
+      <button class="btn small" id="migrate-btn" onclick="migrateLocal()" style="display:none">📤 ローカルデータを移行</button>
       <button class="btn primary" onclick="showAddForm()">+ 講座を追加</button>
     </div>
     <div id="add-form-wrap" style="display:none">
@@ -483,9 +484,35 @@ function exportCSV(){
 function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active')}
 function goHome(){showScreen('home');currentId=null;renderHome()}
 
+async function migrateLocal(){
+  if(!gistEnabled()){alert('クラウド同期が設定されていません');return;}
+  try{
+    const s=localStorage.getItem(STORE_KEY);
+    if(!s||JSON.parse(s).courses.length===0){alert('移行するローカルデータがありません');return;}
+    const local=JSON.parse(s);
+    if(!confirm(`ローカルの講座データ ${local.courses.length} 件をクラウドに移行します。
+既存のクラウドデータは上書きされます。よろしいですか？`))return;
+    data=local;
+    await gistSave(data);
+    alert('移行完了！');
+    renderHome();
+  }catch(e){alert('移行に失敗しました');}
+}
+
 load().then(()=>{
   const el=document.getElementById('sync-status');
   if(el)el.textContent=gistEnabled()?'☁️ クラウド同期':'📴 ローカル保存';
+  // ローカルにデータがあり、クラウド同期中なら移行ボタンを表示
+  if(gistEnabled()){
+    try{
+      const s=localStorage.getItem(STORE_KEY);
+      const local=s?JSON.parse(s):null;
+      if(local&&local.courses&&local.courses.length>0){
+        const btn=document.getElementById('migrate-btn');
+        if(btn)btn.style.display='';
+      }
+    }catch(e){}
+  }
   renderHome();
 });
 </script>

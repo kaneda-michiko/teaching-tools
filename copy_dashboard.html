@@ -159,6 +159,7 @@ body {
       <span class="app-sub">print queue</span>
     </div>
     <span id="sync-status" style="font-size:11px;color:#A09F9A;"></span>
+    <button id="migrate-btn" onclick="migrateLocal()" style="display:none;font-size:11px;padding:3px 10px;border-radius:6px;border:0.5px solid var(--border-med);background:transparent;color:var(--text-secondary);cursor:pointer;font-family:inherit;">📤 ローカルデータを移行</button>
     <span class="date-str" id="ds"></span>
   </div>
 
@@ -296,9 +297,37 @@ function render() {
 const d = new Date();
 document.getElementById('ds').textContent = d.toLocaleDateString('ja-JP', {year:'numeric', month:'short', day:'numeric', weekday:'short'});
 
+async function migrateLocal(){
+  if(!gistEnabled()){alert('クラウド同期が設定されていません');return;}
+  try{
+    const s=localStorage.getItem(KEY);
+    if(!s){alert('移行するローカルデータがありません');return;}
+    const local=JSON.parse(s);
+    const total=Object.values(local).flat().length;
+    if(total===0){alert('移行するローカルデータがありません');return;}
+    if(!confirm(`ローカルのコピータスク ${total} 件をクラウドに移行します。
+既存のクラウドデータは上書きされます。よろしいですか？`))return;
+    data=local;
+    UNIS.forEach(u=>{if(!data[u.id])data[u.id]=[];});
+    await gistSave(data);
+    alert('移行完了！');
+    render();
+  }catch(e){alert('移行に失敗しました');}
+}
+
 load().then(()=>{
   const el=document.getElementById('sync-status');
   if(el)el.textContent=gistEnabled()?'☁️ クラウド同期':'📴 ローカル保存';
+  if(gistEnabled()){
+    try{
+      const s=localStorage.getItem(KEY);
+      const local=s?JSON.parse(s):null;
+      if(local&&Object.values(local).flat().length>0){
+        const btn=document.getElementById('migrate-btn');
+        if(btn)btn.style.display='';
+      }
+    }catch(e){}
+  }
   render();
 });
 </script>
