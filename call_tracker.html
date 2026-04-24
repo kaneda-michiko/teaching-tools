@@ -91,6 +91,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   <div id="home" class="screen active">
     <div class="top-bar">
       <h2>発言記録</h2>
+      <span id="sync-status" style="font-size:11px;color:#A09F9A;"></span>
       <button class="btn primary" onclick="showAddForm()">+ 講座を追加</button>
     </div>
     <div id="add-form-wrap" style="display:none">
@@ -155,12 +156,55 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 </div>
 
 <script>
+// ── Gist同期
+let GIST_TOKEN='',GIST_ID='';
+const GIST_FILENAME='call_tracker.json';
+function gistEnabled(){return!!(GIST_TOKEN&&GIST_ID)}
+async function gistLoad(){
+  if(!gistEnabled())return null;
+  try{
+    const res=await fetch(`https://api.github.com/gists/${GIST_ID}`,{headers:{'Authorization':`token ${GIST_TOKEN}`,'Accept':'application/vnd.github.v3+json'}});
+    if(!res.ok)return null;
+    const j=await res.json();
+    const file=j.files&&j.files[GIST_FILENAME];
+    if(!file)return null;
+    return JSON.parse(file.content);
+  }catch(e){return null}
+}
+async function gistSave(d){
+  if(!gistEnabled())return;
+  setSyncStatus('saving');
+  try{
+    const res=await fetch(`https://api.github.com/gists/${GIST_ID}`,{method:'PATCH',headers:{'Authorization':`token ${GIST_TOKEN}`,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'},body:JSON.stringify({files:{[GIST_FILENAME]:{content:JSON.stringify(d,null,2)}}})});
+    setSyncStatus(res.ok?'ok':'error');
+  }catch(e){setSyncStatus('error')}
+}
+function setSyncStatus(s){
+  const el=document.getElementById('sync-status');
+  if(!el)return;
+  if(s==='saving'){el.textContent='☁️ 保存中…';el.style.color='#D4842A';}
+  else if(s==='ok'){el.textContent='☁️ 同期済';el.style.color='#1D9E75';}
+  else if(s==='error'){el.textContent='⚠️ 保存失敗';el.style.color='#C03030';}
+}
+
 const STORE_KEY='calltracker_v1';
 let data={courses:[]};
 let currentId=null,currentSession=1;
 
-function load(){try{const s=localStorage.getItem(STORE_KEY);if(s)data=JSON.parse(s);}catch(e){}}
-function save(){try{localStorage.setItem(STORE_KEY,JSON.stringify(data));}catch(e){}}
+async function load(){
+  const params=new URLSearchParams(location.search);
+  GIST_TOKEN=params.get('token')||'';
+  GIST_ID=params.get('gist')||'';
+  if(gistEnabled()){
+    const d=await gistLoad();
+    if(d){data=d;return;}
+  }
+  try{const s=localStorage.getItem(STORE_KEY);if(s)data=JSON.parse(s);}catch(e){}
+}
+function save(){
+  try{localStorage.setItem(STORE_KEY,JSON.stringify(data));}catch(e){}
+  gistSave(data);
+}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
 function getCourse(id){return data.courses.find(c=>c.id===id)}
 
@@ -439,7 +483,11 @@ function exportCSV(){
 function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active')}
 function goHome(){showScreen('home');currentId=null;renderHome()}
 
-load();renderHome();
+load().then(()=>{
+  const el=document.getElementById('sync-status');
+  if(el)el.textContent=gistEnabled()?'☁️ クラウド同期':'📴 ローカル保存';
+  renderHome();
+});
 </script>
 </body>
 </html>

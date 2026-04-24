@@ -365,11 +365,12 @@ input[type=file] { display: none; }
 </head>
 <body>
 <div class="container">
-  <div class="topbar">
+  <div class="topbar" style="display:flex;align-items:center;justify-content:space-between;">
     <div>
       <span class="app-title">出席番号くじ引き</span>
       <span class="app-sub">random pick</span>
     </div>
+    <span id="sync-status" style="font-size:11px;color:#A09F9A;"></span>
   </div>
 
   <!-- タブ -->
@@ -466,35 +467,75 @@ let currentId = null;
 let rolling = null;
 
 // ── 永続化
-function loadState() {
+// ── Gist同期
+let GIST_TOKEN='',GIST_ID='';
+const GIST_FILENAME='random_picker.json';
+function gistEnabled(){return!!(GIST_TOKEN&&GIST_ID)}
+async function gistLoadRemote(){
+  if(!gistEnabled())return null;
+  try{
+    const res=await fetch(`https://api.github.com/gists/${GIST_ID}`,{headers:{'Authorization':`token ${GIST_TOKEN}`,'Accept':'application/vnd.github.v3+json'}});
+    if(!res.ok)return null;
+    const j=await res.json();
+    const file=j.files&&j.files[GIST_FILENAME];
+    if(!file)return null;
+    return JSON.parse(file.content);
+  }catch(e){return null}
+}
+async function gistSaveRemote(d){
+  if(!gistEnabled())return;
+  setSyncStatus('saving');
+  try{
+    const res=await fetch(`https://api.github.com/gists/${GIST_ID}`,{method:'PATCH',headers:{'Authorization':`token ${GIST_TOKEN}`,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'},body:JSON.stringify({files:{[GIST_FILENAME]:{content:JSON.stringify(d,null,2)}}})});
+    setSyncStatus(res.ok?'ok':'error');
+  }catch(e){setSyncStatus('error')}
+}
+function setSyncStatus(s){
+  const el=document.getElementById('sync-status');
+  if(!el)return;
+  if(s==='saving'){el.textContent='☁️ 保存中…';el.style.color='#D4842A';}
+  else if(s==='ok'){el.textContent='☁️ 同期済';el.style.color='#1D9E75';}
+  else if(s==='error'){el.textContent='⚠️ 保存失敗';el.style.color='#C03030';}
+}
+
+function migrateState(){
+  if (!state.courses) state.courses = [];
+  state.courses.forEach(c => {
+    if (!c.color) c.color = '#185FA5';
+    if (!c.university) c.university = '';
+    if (c.students) c.students = c.students.map(s => ({
+      num: s.num, studentId: s.studentId || '', name: s.name || '', furigana: s.furigana || '',
+    }));
+  });
+  if (!state.session) state.session = {};
+}
+
+async function loadState() {
+  const params=new URLSearchParams(location.search);
+  GIST_TOKEN=params.get('token')||'';
+  GIST_ID=params.get('gist')||'';
+  if(gistEnabled()){
+    const d=await gistLoadRemote();
+    if(d){state=d;migrateState();return;}
+  }
   try {
     const r = localStorage.getItem(STORAGE_KEY);
     if (r) state = JSON.parse(r);
-    // v1からのマイグレーション
-    if (!state.courses) state.courses = [];
-    state.courses.forEach(c => {
-      if (!c.color) c.color = '#185FA5';
-      if (!c.university) c.university = '';
-      if (c.students) c.students = c.students.map(s => ({
-        num: s.num,
-        studentId: s.studentId || '',
-        name: s.name || '',
-        furigana: s.furigana || '',
-      }));
-    });
   } catch(e) {}
-  if (!state.courses) state.courses = [];
-  if (!state.session) state.session = {};
+  migrateState();
 }
 
 function saveState() {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
+  gistSaveRemote(state);
 }
 
 // ── 初期化
-function init() {
+async function init() {
   renderColorPresets();
-  loadState();
+  await loadState();
+  const el=document.getElementById('sync-status');
+  if(el)el.textContent=gistEnabled()?'☁️ クラウド同期':'📴 ローカル保存';
   if (state.courses.length === 0) addCourse('新しい講座');
   else currentId = state.courses[0].id;
   renderAll();

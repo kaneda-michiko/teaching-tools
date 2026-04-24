@@ -326,8 +326,38 @@ body {
 
   </div><!-- /grid -->
 
-  <footer class="page-footer">
-    <span class="footer-note">ファイルを同じフォルダに置いてください</span>
+  <!-- Gist設定 -->
+  <div id="gist-setup" style="margin-top:2rem;padding:1.25rem;background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.875rem;">
+      <span style="font-size:13px;font-weight:500;">☁️ クラウド同期設定</span>
+      <span id="sync-badge" style="font-size:11px;color:#A09F9A;">未設定</span>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+      <div>
+        <div style="font-size:11px;color:var(--text2);margin-bottom:4px;">Personal Access Token</div>
+        <input id="inp-token" type="password" placeholder="ghp_xxxxxxxxxxxx"
+          style="width:100%;font-size:12px;padding:6px 10px;border-radius:6px;border:0.5px solid var(--border-med);background:var(--surface2);color:var(--text);font-family:var(--sans);outline:none;">
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--text2);margin-bottom:4px;">Gist ID</div>
+        <input id="inp-gist" type="text" placeholder="dbf34877ed0d270a12e3e9c53ccb828d"
+          style="width:100%;font-size:12px;padding:6px 10px;border-radius:6px;border:0.5px solid var(--border-med);background:var(--surface2);color:var(--text);font-family:var(--sans);outline:none;">
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <button onclick="applyGist()" style="font-size:12px;padding:5px 16px;border-radius:6px;border:0.5px solid var(--border-med);background:var(--text);color:var(--surface);cursor:pointer;font-family:var(--sans);">設定してブックマーク用URLを生成</button>
+      <button onclick="clearGist()" style="font-size:12px;padding:5px 14px;border-radius:6px;border:0.5px solid var(--border-med);background:transparent;color:var(--text2);cursor:pointer;font-family:var(--sans);">クリア</button>
+    </div>
+    <div id="gist-url-out" style="display:none;margin-top:10px;">
+      <div style="font-size:11px;color:var(--text2);margin-bottom:4px;">このURLをブックマークして使用してください：</div>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <input id="gist-url-text" readonly style="flex:1;font-size:11px;padding:5px 8px;border-radius:5px;border:0.5px solid var(--border-med);background:var(--surface2);color:var(--text);font-family:monospace;outline:none;">
+        <button onclick="copyUrl()" style="font-size:11px;padding:5px 12px;border-radius:5px;border:0.5px solid var(--border-med);background:transparent;color:var(--text2);cursor:pointer;font-family:var(--sans);">コピー</button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="page-footer" style="margin-top:1.5rem;">
     <span class="footer-note" id="tool-count"></span>
   </footer>
 
@@ -343,11 +373,61 @@ document.getElementById('date-line').textContent =
 const cards = document.querySelectorAll('.card:not(.placeholder)');
 document.getElementById('tool-count').textContent = cards.length + ' tools';
 
-// open tool (same folder)
+// 既存のGist設定を表示
+const p = new URLSearchParams(location.search);
+const existingToken = p.get('token')||'';
+const existingGist = p.get('gist')||'';
+if (existingToken) document.getElementById('inp-token').value = existingToken;
+if (existingGist) document.getElementById('inp-gist').value = existingGist;
+if (existingToken && existingGist) {
+  document.getElementById('sync-badge').textContent = '✓ クラウド同期中';
+  document.getElementById('sync-badge').style.color = '#1D9E75';
+}
+
+// Gist設定
+function getGistParams() {
+  const params = new URLSearchParams(location.search);
+  return { token: params.get('token')||'', gist: params.get('gist')||'' };
+}
+
+function applyGist() {
+  const token = document.getElementById('inp-token').value.trim();
+  const gist = document.getElementById('inp-gist').value.trim();
+  if (!token || !gist) { alert('TokenとGist IDの両方を入力してください'); return; }
+  const base = location.href.split('?')[0];
+  const url = `${base}?token=${encodeURIComponent(token)}&gist=${encodeURIComponent(gist)}`;
+  document.getElementById('gist-url-out').style.display = 'block';
+  document.getElementById('gist-url-text').value = url;
+  document.getElementById('sync-badge').textContent = '✓ 設定済 — ブックマーク用URLを生成しました';
+  document.getElementById('sync-badge').style.color = '#1D9E75';
+}
+
+function clearGist() {
+  document.getElementById('inp-token').value = '';
+  document.getElementById('inp-gist').value = '';
+  document.getElementById('gist-url-out').style.display = 'none';
+  document.getElementById('sync-badge').textContent = '未設定';
+  document.getElementById('sync-badge').style.color = '#A09F9A';
+}
+
+function copyUrl() {
+  const url = document.getElementById('gist-url-text').value;
+  navigator.clipboard.writeText(url).then(() => {
+    const btn = event.target;
+    btn.textContent = 'コピー済!';
+    setTimeout(() => btn.textContent = 'コピー', 1500);
+  });
+}
+
+// open tool (same folder, with gist params)
 function openTool(filename) {
-  // Works when launcher.html and tool files are in the same folder
-  const base = location.href.replace(/\/[^/]*$/, '/');
-  window.open(base + filename, '_blank');
+  const base = location.href.replace(/\/[^/]*$/, '/').split('?')[0];
+  const params = new URLSearchParams(location.search);
+  const token = params.get('token')||'';
+  const gist = params.get('gist')||'';
+  let url = base + filename;
+  if (token && gist) url += `?token=${encodeURIComponent(token)}&gist=${encodeURIComponent(gist)}`;
+  window.open(url, '_blank');
 }
 
 // keyboard support

@@ -158,6 +158,7 @@ body {
       <span class="app-title">コピーダッシュボード</span>
       <span class="app-sub">print queue</span>
     </div>
+    <span id="sync-status" style="font-size:11px;color:#A09F9A;"></span>
     <span class="date-str" id="ds"></span>
   </div>
 
@@ -184,15 +185,56 @@ const UNIS = [
   {id:'jissen',   name:'実践女子大学',       bg:'#F0DCF0', border:'#B07AB0', text:'#4A1F4A', countBg:'#DDB5DD', countCol:'#4A1F4A', check:'#B07AB0'},
 ];
 
+// ── Gist同期
+let GIST_TOKEN='',GIST_ID='';
+const GIST_FILENAME='copy_dashboard.json';
+function gistEnabled(){return!!(GIST_TOKEN&&GIST_ID)}
+async function gistLoad(){
+  if(!gistEnabled())return null;
+  try{
+    const res=await fetch(`https://api.github.com/gists/${GIST_ID}`,{headers:{'Authorization':`token ${GIST_TOKEN}`,'Accept':'application/vnd.github.v3+json'}});
+    if(!res.ok)return null;
+    const j=await res.json();
+    const file=j.files&&j.files[GIST_FILENAME];
+    if(!file)return null;
+    return JSON.parse(file.content);
+  }catch(e){return null}
+}
+async function gistSave(d){
+  if(!gistEnabled())return;
+  setSyncStatus('saving');
+  try{
+    const res=await fetch(`https://api.github.com/gists/${GIST_ID}`,{method:'PATCH',headers:{'Authorization':`token ${GIST_TOKEN}`,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'},body:JSON.stringify({files:{[GIST_FILENAME]:{content:JSON.stringify(d,null,2)}}})});
+    setSyncStatus(res.ok?'ok':'error');
+  }catch(e){setSyncStatus('error')}
+}
+function setSyncStatus(s){
+  const el=document.getElementById('sync-status');
+  if(!el)return;
+  if(s==='saving'){el.textContent='☁️ 保存中…';el.style.color='var(--amber)';}
+  else if(s==='ok'){el.textContent='☁️ 同期済';el.style.color='var(--green)';}
+  else if(s==='error'){el.textContent='⚠️ 保存失敗';el.style.color='#C03030';}
+}
+
 const KEY = 'cpq_v2';
 let data = {};
 
-function load() {
+async function load() {
+  const params=new URLSearchParams(location.search);
+  GIST_TOKEN=params.get('token')||'';
+  GIST_ID=params.get('gist')||'';
+  if(gistEnabled()){
+    const d=await gistLoad();
+    if(d){data=d;UNIS.forEach(u=>{if(!data[u.id])data[u.id]=[];});return;}
+  }
   try { const r = localStorage.getItem(KEY); if (r) data = JSON.parse(r); } catch(e) {}
   UNIS.forEach(u => { if (!data[u.id]) data[u.id] = []; });
 }
 
-function save() { try { localStorage.setItem(KEY, JSON.stringify(data)); } catch(e) {} }
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(data)); } catch(e) {}
+  gistSave(data);
+}
 function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 function addTask(uid) {
@@ -254,7 +296,11 @@ function render() {
 const d = new Date();
 document.getElementById('ds').textContent = d.toLocaleDateString('ja-JP', {year:'numeric', month:'short', day:'numeric', weekday:'short'});
 
-load(); render();
+load().then(()=>{
+  const el=document.getElementById('sync-status');
+  if(el)el.textContent=gistEnabled()?'☁️ クラウド同期':'📴 ローカル保存';
+  render();
+});
 </script>
 </body>
 </html>
