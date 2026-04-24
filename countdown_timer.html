@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>カウントダウンタイマー</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #F7F6F3;
+  --surface: #FFFFFF;
+  --surface2: #F0EEE9;
+  --border: rgba(0,0,0,0.10);
+  --border-med: rgba(0,0,0,0.18);
+  --text-primary: #1A1A18;
+  --text-secondary: #6B6A65;
+  --text-hint: #A09F9A;
+  --accent: #378ADD;
+  --accent-bg: #E6F1FB;
+  --warn: #D4842A;
+  --warn-bg: #FDF3E6;
+  --danger: #C03030;
+  --danger-bg: #FDEAEA;
+  --green: #1D9E75;
+  --radius-md: 8px;
+  --radius-lg: 14px;
+  --shadow: 0 1px 4px rgba(0,0,0,0.07), 0 0 0 0.5px rgba(0,0,0,0.08);
+}
+
+body {
+  font-family: 'Noto Sans JP', sans-serif;
+  background: var(--bg);
+  color: var(--text-primary);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem 1rem 4rem;
+}
+
+.container { width: 100%; max-width: 480px; }
+
+/* ── header */
+.topbar {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 1.75rem;
+  padding-bottom: 1.1rem;
+  border-bottom: 0.5px solid var(--border-med);
+}
+.app-title { font-size: 22px; font-weight: 500; color: var(--text-primary); }
+.app-sub { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-secondary); margin-left: 10px; }
+
+/* ── clock face */
+.clock-wrap {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  padding: 2rem 1.5rem 1.75rem;
+  margin-bottom: 1.25rem;
+  text-align: center;
+  transition: background .4s, box-shadow .4s;
+  position: relative;
+  overflow: hidden;
+}
+.clock-wrap::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-lg);
+  opacity: 0;
+  transition: opacity .4s;
+  pointer-events: none;
+}
+.clock-wrap.warn { background: var(--warn-bg); }
+.clock-wrap.warn::before { background: repeating-linear-gradient(135deg, transparent 0px, transparent 12px, rgba(212,132,42,.04) 12px, rgba(212,132,42,.04) 14px); opacity: 1; }
+.clock-wrap.danger { background: var(--danger-bg); }
+.clock-wrap.danger::before { opacity: 0; }
+.clock-wrap.done { background: #F0FAF6; }
+
+.progress-ring-wrap {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  margin: 0 auto 1.25rem;
+}
+.progress-ring-wrap svg { position: absolute; top: 0; left: 0; transform: rotate(-90deg); }
+.ring-track { fill: none; stroke: var(--surface2); stroke-width: 6; }
+.ring-fill { fill: none; stroke-width: 6; stroke-linecap: round; transition: stroke-dashoffset .8s cubic-bezier(.4,0,.2,1), stroke .4s; }
+
+.time-display {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.time-digits {
+  font-family: 'DM Mono', monospace;
+  font-size: 52px;
+  font-weight: 500;
+  letter-spacing: -.02em;
+  line-height: 1;
+  color: var(--text-primary);
+  transition: color .4s;
+}
+.clock-wrap.warn .time-digits { color: var(--warn); }
+.clock-wrap.danger .time-digits { color: var(--danger); }
+.clock-wrap.done .time-digits { color: var(--green); }
+
+.time-label {
+  font-size: 11px;
+  color: var(--text-hint);
+  margin-top: 6px;
+  letter-spacing: .04em;
+}
+
+/* shake animation for danger */
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(3px); }
+}
+.clock-wrap.shaking .time-digits { animation: shake .35s ease; }
+
+/* done pulse */
+@keyframes pulse-done {
+  0%,100% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+}
+.clock-wrap.done .time-digits { animation: pulse-done 1.2s ease infinite; }
+
+/* ── controls */
+.controls {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+button {
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+  font-size: 14px;
+  border-radius: var(--radius-md);
+  padding: 10px 20px;
+  font-weight: 500;
+  transition: opacity .15s, transform .1s;
+}
+button:active { transform: scale(.97); }
+button:disabled { opacity: .35; cursor: default; }
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+  min-width: 96px;
+}
+.btn-secondary {
+  background: var(--surface);
+  color: var(--text-secondary);
+  border: 0.5px solid var(--border-med);
+  box-shadow: var(--shadow);
+}
+.btn-reset {
+  background: var(--surface2);
+  color: var(--text-secondary);
+  border: 0.5px solid var(--border-med);
+}
+
+/* ── preset */
+.section-label {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .06em;
+  color: var(--text-hint);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 1.5rem;
+}
+.preset-btn {
+  background: var(--surface);
+  border: 0.5px solid var(--border-med);
+  color: var(--text-secondary);
+  border-radius: var(--radius-md);
+  padding: 7px 14px;
+  font-size: 13px;
+  box-shadow: var(--shadow);
+  font-family: inherit;
+  cursor: pointer;
+  transition: background .12s, color .12s, transform .1s;
+}
+.preset-btn:hover { background: var(--accent-bg); color: var(--accent); border-color: var(--accent); }
+.preset-btn:active { transform: scale(.96); }
+
+/* ── custom input */
+.input-card {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.25rem;
+}
+.input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.input-row label { font-size: 13px; color: var(--text-secondary); white-space: nowrap; }
+.time-input {
+  width: 60px;
+  text-align: center;
+  font-family: 'DM Mono', monospace;
+  font-size: 20px;
+  background: var(--surface2);
+  border: 0.5px solid var(--border-med);
+  border-radius: 6px;
+  padding: 6px 4px;
+  color: var(--text-primary);
+  -moz-appearance: textfield;
+}
+.time-input::-webkit-outer-spin-button,
+.time-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.time-input:focus { outline: none; border-color: var(--accent); background: var(--accent-bg); }
+.colon { font-family: 'DM Mono', monospace; font-size: 20px; color: var(--text-hint); }
+.btn-set {
+  margin-left: auto;
+  background: var(--surface2);
+  border: 0.5px solid var(--border-med);
+  color: var(--text-secondary);
+  font-size: 13px;
+  padding: 7px 16px;
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  cursor: pointer;
+  transition: background .12s, color .12s;
+}
+.btn-set:hover { background: var(--accent-bg); color: var(--accent); border-color: var(--accent); }
+
+/* ── title input */
+.title-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 0.5px solid var(--border);
+}
+.title-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--text-primary);
+  padding: 4px 0;
+  border-bottom: 0.5px solid var(--border-med);
+}
+.title-input:focus { outline: none; border-color: var(--accent); }
+.title-input::placeholder { color: var(--text-hint); }
+
+/* ── status bar */
+.status-bar {
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  border: 0.5px solid var(--border-med);
+  padding: 10px 14px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-align: center;
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .3s, color .3s, border-color .3s;
+}
+.status-bar.status-warn { background: var(--warn-bg); color: var(--warn); border-color: rgba(212,132,42,.3); }
+.status-bar.status-danger { background: var(--danger-bg); color: var(--danger); border-color: rgba(192,48,48,.3); }
+.status-bar.status-done { background: #F0FAF6; color: var(--green); border-color: rgba(29,158,117,.3); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- header -->
+  <div class="topbar">
+    <span class="app-title">カウントダウンタイマー</span>
+    <span class="app-sub">countdown timer</span>
+  </div>
+
+  <!-- clock face -->
+  <div class="clock-wrap" id="clockWrap">
+    <div class="progress-ring-wrap">
+      <svg width="200" height="200" viewBox="0 0 200 200">
+        <circle class="ring-track" cx="100" cy="100" r="88"/>
+        <circle class="ring-fill" id="ringFill" cx="100" cy="100" r="88"
+          stroke-dasharray="552.92" stroke-dashoffset="0" stroke="var(--accent)"/>
+      </svg>
+      <div class="time-display">
+        <div class="time-digits" id="timeDigits">00:00</div>
+        <div class="time-label" id="timeLabel">時間を設定してください</div>
+      </div>
+    </div>
+
+    <!-- controls -->
+    <div class="controls">
+      <button class="btn-primary" id="btnStart" onclick="handleStart()" disabled>スタート</button>
+      <button class="btn-secondary" id="btnPause" onclick="handlePause()" disabled>一時停止</button>
+      <button class="btn-reset" onclick="handleReset()">リセット</button>
+    </div>
+  </div>
+
+  <!-- status bar -->
+  <div class="status-bar" id="statusBar">時間をプリセットまたは手動で設定してください</div>
+
+  <div style="height:1.25rem"></div>
+
+  <!-- preset buttons -->
+  <div class="section-label">プリセット</div>
+  <div class="presets">
+    <button class="preset-btn" onclick="setPreset(2)">2分</button>
+    <button class="preset-btn" onclick="setPreset(3)">3分</button>
+    <button class="preset-btn" onclick="setPreset(5)">5分</button>
+    <button class="preset-btn" onclick="setPreset(7)">7分</button>
+    <button class="preset-btn" onclick="setPreset(10)">10分</button>
+    <button class="preset-btn" onclick="setPreset(15)">15分</button>
+    <button class="preset-btn" onclick="setPreset(20)">20分</button>
+    <button class="preset-btn" onclick="setPreset(25)">25分</button>
+  </div>
+
+  <!-- custom input card -->
+  <div class="input-card">
+    <div class="title-row">
+      <input type="text" class="title-input" id="timerTitle" placeholder="タイマーのタイトル（任意）" maxlength="40">
+    </div>
+    <div class="section-label" style="margin-bottom:10px">手動入力</div>
+    <div class="input-row">
+      <label>分</label>
+      <input type="number" class="time-input" id="inputMin" min="0" max="99" value="5" placeholder="00">
+      <span class="colon">:</span>
+      <label>秒</label>
+      <input type="number" class="time-input" id="inputSec" min="0" max="59" value="0" placeholder="00">
+      <button class="btn-set" onclick="applyManual()">セット</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── state
+let totalSeconds = 0;
+let remainSeconds = 0;
+let intervalId = null;
+let running = false;
+let finished = false;
+
+// ── UI refs
+const clockWrap   = document.getElementById('clockWrap');
+const timeDigits  = document.getElementById('timeDigits');
+const timeLabel   = document.getElementById('timeLabel');
+const ringFill    = document.getElementById('ringFill');
+const btnStart    = document.getElementById('btnStart');
+const btnPause    = document.getElementById('btnPause');
+const statusBar   = document.getElementById('statusBar');
+const CIRCUMFERENCE = 2 * Math.PI * 88; // ≈552.92
+
+// ── helpers
+function fmt(s) {
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return String(m).padStart(2,'0') + ':' + String(sec).padStart(2,'0');
+}
+
+function getTitle() {
+  return document.getElementById('timerTitle').value.trim();
+}
+
+function setRing(ratio) {
+  // ratio 1 = full, 0 = empty
+  ringFill.style.strokeDashoffset = CIRCUMFERENCE * (1 - ratio);
+}
+
+function setStage(stage) {
+  // stage: 'idle' | 'running' | 'warn' | 'danger' | 'done' | 'paused'
+  clockWrap.classList.remove('warn','danger','done');
+  statusBar.classList.remove('status-warn','status-danger','status-done');
+  ringFill.style.stroke = 'var(--accent)';
+
+  if (stage === 'warn') {
+    clockWrap.classList.add('warn');
+    statusBar.classList.add('status-warn');
+    ringFill.style.stroke = 'var(--warn)';
+  } else if (stage === 'danger') {
+    clockWrap.classList.add('danger');
+    statusBar.classList.add('status-danger');
+    ringFill.style.stroke = 'var(--danger)';
+  } else if (stage === 'done') {
+    clockWrap.classList.add('done');
+    statusBar.classList.add('status-done');
+    ringFill.style.stroke = 'var(--green)';
+  }
+}
+
+function computeStage(rem, total) {
+  if (rem === 0) return 'done';
+  const ratio = rem / total;
+  if (ratio <= 0.15 || rem <= 30) return 'danger';
+  if (ratio <= 0.30 || rem <= 60) return 'warn';
+  return 'running';
+}
+
+function updateDisplay() {
+  timeDigits.textContent = fmt(remainSeconds);
+  const ratio = totalSeconds > 0 ? remainSeconds / totalSeconds : 0;
+  setRing(ratio);
+
+  const title = getTitle();
+
+  if (!running && !finished && remainSeconds === totalSeconds && totalSeconds > 0) {
+    // set but not started
+    setStage('idle');
+    timeLabel.textContent = title || fmt(totalSeconds) + ' セット済み';
+    statusBar.textContent = '▶ スタートを押してください';
+    statusBar.className = 'status-bar';
+    return;
+  }
+
+  if (finished) {
+    setStage('done');
+    timeLabel.textContent = title ? title + ' — 終了！' : '終了！';
+    statusBar.textContent = '✓ タイマー終了';
+    return;
+  }
+
+  if (!running && totalSeconds > 0) {
+    // paused
+    const stage = computeStage(remainSeconds, totalSeconds);
+    setStage(stage);
+    const pct = Math.round((remainSeconds / totalSeconds) * 100);
+    timeLabel.textContent = title || '一時停止中';
+    statusBar.textContent = `一時停止中 — 残り ${pct}%（${fmt(remainSeconds)}）`;
+    if (stage === 'warn') statusBar.className = 'status-bar status-warn';
+    else if (stage === 'danger') statusBar.className = 'status-bar status-danger';
+    else statusBar.className = 'status-bar';
+    return;
+  }
+
+  if (running) {
+    const stage = computeStage(remainSeconds, totalSeconds);
+    setStage(stage);
+    const pct = Math.round((remainSeconds / totalSeconds) * 100);
+    timeLabel.textContent = title || '進行中';
+
+    if (stage === 'danger') {
+      statusBar.className = 'status-bar status-danger';
+      statusBar.textContent = `⚠ 残り ${fmt(remainSeconds)} — まもなく終了`;
+    } else if (stage === 'warn') {
+      statusBar.className = 'status-bar status-warn';
+      statusBar.textContent = `残り ${fmt(remainSeconds)}（${pct}%）`;
+    } else {
+      statusBar.className = 'status-bar';
+      statusBar.textContent = `進行中 — 残り ${fmt(remainSeconds)}（${pct}%）`;
+    }
+  }
+}
+
+function updateButtons() {
+  btnStart.disabled = (totalSeconds === 0 || running || finished);
+  btnPause.disabled = (!running);
+  btnStart.textContent = (!running && remainSeconds < totalSeconds && remainSeconds > 0) ? '再開' : 'スタート';
+}
+
+// ── alarm (Web Audio)
+let audioCtx = null;
+function playAlarm() {
+  try {
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    const ctx = audioCtx;
+    // 3-beep pattern
+    [0, 0.35, 0.70].forEach(offset => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, ctx.currentTime + offset);
+      gain.gain.setValueAtTime(0, ctx.currentTime + offset);
+      gain.gain.linearRampToValueAtTime(0.4, ctx.currentTime + offset + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + offset + 0.28);
+      osc.start(ctx.currentTime + offset);
+      osc.stop(ctx.currentTime + offset + 0.30);
+    });
+  } catch(e) { /* silent fail */ }
+}
+
+function playWarnBeep() {
+  try {
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    const ctx = audioCtx;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(660, ctx.currentTime);
+    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.18);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.20);
+  } catch(e) {}
+}
+
+// warn beep triggers
+let warned60 = false;
+let warned30 = false;
+let warned10 = false;
+
+function tick() {
+  if (remainSeconds <= 0) {
+    clearInterval(intervalId);
+    intervalId = null;
+    remainSeconds = 0;
+    running = false;
+    finished = true;
+    playAlarm();
+    // shake
+    clockWrap.classList.add('shaking');
+    setTimeout(() => clockWrap.classList.remove('shaking'), 400);
+    updateDisplay();
+    updateButtons();
+    return;
+  }
+  remainSeconds--;
+
+  // warn beeps
+  if (remainSeconds === 60 && !warned60 && totalSeconds > 90) { playWarnBeep(); warned60 = true; }
+  if (remainSeconds === 30 && !warned30) { playWarnBeep(); warned30 = true; }
+  if (remainSeconds === 10 && !warned10) { playWarnBeep(); warned10 = true; }
+
+  updateDisplay();
+}
+
+// ── controls
+function handleStart() {
+  if (totalSeconds === 0 || running || finished) return;
+  running = true;
+  // init AudioContext on user gesture
+  if (!audioCtx) {
+    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+  }
+  warned60 = false; warned30 = false; warned10 = false;
+  intervalId = setInterval(tick, 1000);
+  updateDisplay();
+  updateButtons();
+}
+
+function handlePause() {
+  if (!running) return;
+  running = false;
+  clearInterval(intervalId);
+  intervalId = null;
+  updateDisplay();
+  updateButtons();
+}
+
+function handleReset() {
+  clearInterval(intervalId);
+  intervalId = null;
+  running = false;
+  finished = false;
+  remainSeconds = totalSeconds;
+  warned60 = false; warned30 = false; warned10 = false;
+  setStage('idle');
+  updateDisplay();
+  updateButtons();
+  if (totalSeconds === 0) {
+    timeDigits.textContent = '00:00';
+    timeLabel.textContent = '時間を設定してください';
+    statusBar.textContent = '時間をプリセットまたは手動で設定してください';
+    statusBar.className = 'status-bar';
+    setRing(0);
+  }
+}
+
+function setTime(seconds) {
+  clearInterval(intervalId);
+  intervalId = null;
+  running = false;
+  finished = false;
+  totalSeconds = seconds;
+  remainSeconds = seconds;
+  warned60 = false; warned30 = false; warned10 = false;
+  setRing(1);
+  updateDisplay();
+  updateButtons();
+}
+
+function setPreset(minutes) {
+  setTime(minutes * 60);
+}
+
+function applyManual() {
+  const m = parseInt(document.getElementById('inputMin').value) || 0;
+  const s = parseInt(document.getElementById('inputSec').value) || 0;
+  const total = m * 60 + s;
+  if (total <= 0 || total > 99*60+59) return;
+  setTime(total);
+}
+
+// enter key on inputs
+['inputMin','inputSec'].forEach(id => {
+  document.getElementById(id).addEventListener('keydown', e => {
+    if (e.key === 'Enter') applyManual();
+  });
+});
+
+// init
+updateDisplay();
+updateButtons();
+</script>
+</body>
+</html>

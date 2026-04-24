@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>コピーダッシュボード</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #F7F6F3;
+  --surface: #FFFFFF;
+  --surface2: #F0EEE9;
+  --border: rgba(0,0,0,0.1);
+  --border-med: rgba(0,0,0,0.18);
+  --text-primary: #1A1A18;
+  --text-secondary: #6B6A65;
+  --text-hint: #A09F9A;
+  --green: #1D9E75;
+  --amber: #BA7517;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+}
+
+body {
+  font-family: 'Noto Sans JP', sans-serif;
+  background: var(--bg);
+  color: var(--text-primary);
+  min-height: 100vh;
+  padding: 2rem 1.5rem 4rem;
+}
+
+.container { max-width: 900px; margin: 0 auto; }
+
+.topbar {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 1.75rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 0.5px solid var(--border-med);
+}
+.topbar-left { display: flex; align-items: baseline; gap: 12px; }
+.app-title { font-size: 22px; font-weight: 500; color: var(--text-primary); }
+.app-sub { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-secondary); }
+.date-str { font-size: 12px; color: var(--text-secondary); }
+
+.stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1.75rem; }
+.stat { background: var(--surface); border-radius: var(--radius-md); padding: 0.875rem 1.125rem; border: 0.5px solid var(--border); }
+.stat-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-secondary); margin-bottom: 4px; }
+.stat-val { font-size: 24px; font-weight: 500; color: var(--text-primary); }
+.stat-val.green { color: var(--green); }
+.stat-val.amber { color: var(--amber); }
+
+.boards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 1.5rem; }
+.board { border-radius: var(--radius-lg); overflow: hidden; }
+.board-header {
+  padding: 11px 16px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  border: 0.5px solid var(--board-border);
+  border-bottom: none;
+}
+.board-name { font-size: 13px; font-weight: 500; letter-spacing: 0.02em; }
+.board-count { font-size: 11px; border-radius: 100px; padding: 2px 9px; font-weight: 500; }
+.board-body {
+  background: var(--surface);
+  padding: 8px;
+  border: 0.5px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+
+.task-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.12s;
+  user-select: none;
+}
+.task-item:hover { background: var(--surface2); }
+.check {
+  width: 17px; height: 17px;
+  border-radius: 50%;
+  border: 1.5px solid #ccc;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+}
+.check.on { border-color: transparent; }
+.check.on::after {
+  content: '';
+  width: 4px; height: 8px;
+  border: 1.5px solid white;
+  border-top: none; border-left: none;
+  transform: rotate(45deg) translate(-1px, -1px);
+  display: block;
+}
+.task-name { font-size: 13px; color: var(--text-primary); flex: 1; line-height: 1.4; }
+.task-item.done .task-name { text-decoration: line-through; color: var(--text-hint); }
+.task-item.done .check { border-color: transparent; }
+
+.btn-del {
+  background: none; border: none; cursor: pointer;
+  color: var(--text-secondary); font-size: 14px;
+  padding: 0 3px; opacity: 0;
+  transition: opacity 0.12s; line-height: 1;
+  font-family: inherit;
+}
+.task-item:hover .btn-del { opacity: 0.45; }
+.btn-del:hover { opacity: 1 !important; color: #D94040; }
+
+.inline-input {
+  font-size: 13px; font-family: inherit;
+  border: none;
+  background: var(--surface2);
+  border-radius: 6px;
+  padding: 5px 9px;
+  width: 100%;
+  outline: none;
+  color: var(--text-primary);
+  margin-top: 3px;
+}
+.inline-input::placeholder { color: var(--text-hint); }
+.inline-input:focus { background: #ECEAE4; }
+
+.footer-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding-top: 1.25rem;
+  border-top: 0.5px solid var(--border-med);
+}
+.footer-note { font-size: 12px; color: var(--text-secondary); }
+.btn-clear {
+  font-size: 12px; font-family: inherit;
+  color: var(--text-secondary);
+  background: none;
+  border: 0.5px solid var(--border-med);
+  border-radius: var(--radius-md);
+  padding: 5px 14px;
+  cursor: pointer;
+  transition: color 0.12s, border-color 0.12s;
+}
+.btn-clear:hover { color: #D94040; border-color: #D94040; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="topbar">
+    <div class="topbar-left">
+      <span class="app-title">コピーダッシュボード</span>
+      <span class="app-sub">print queue</span>
+    </div>
+    <span class="date-str" id="ds"></span>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat"><div class="stat-label">合計</div><div class="stat-val" id="st">0</div></div>
+    <div class="stat"><div class="stat-label">完了</div><div class="stat-val green" id="sd">0</div></div>
+    <div class="stat"><div class="stat-label">残り</div><div class="stat-val amber" id="sr">0</div></div>
+  </div>
+
+  <div class="boards" id="boards"></div>
+
+  <div class="footer-row">
+    <span class="footer-note" id="fn"></span>
+    <button class="btn-clear" onclick="clearDone()">完了済みを削除</button>
+  </div>
+</div>
+
+<script>
+const UNIS = [
+  {id:'njoshi',   name:'日本女子大学',      bg:'#F5DDE2', border:'#C97A8A', text:'#7A1F30', countBg:'#EAB8C2', countCol:'#7A1F30', check:'#C97A8A'},
+  {id:'kogakuin', name:'工学院大学',         bg:'#DDE0F5', border:'#8A90C9', text:'#252B6E', countBg:'#B8BCE8', countCol:'#252B6E', check:'#8A90C9'},
+  {id:'senshu',   name:'専修大学',           bg:'#DFF0E1', border:'#7AB07E', text:'#1F4D22', countBg:'#B5D9B8', countCol:'#1F4D22', check:'#7AB07E'},
+  {id:'jumonji',  name:'十文字学園女子大学', bg:'#DAF2F2', border:'#6BB8B8', text:'#1A5555', countBg:'#AADDDD', countCol:'#1A5555', check:'#6BB8B8'},
+  {id:'jissen',   name:'実践女子大学',       bg:'#F0DCF0', border:'#B07AB0', text:'#4A1F4A', countBg:'#DDB5DD', countCol:'#4A1F4A', check:'#B07AB0'},
+];
+
+const KEY = 'cpq_v2';
+let data = {};
+
+function load() {
+  try { const r = localStorage.getItem(KEY); if (r) data = JSON.parse(r); } catch(e) {}
+  UNIS.forEach(u => { if (!data[u.id]) data[u.id] = []; });
+}
+
+function save() { try { localStorage.setItem(KEY, JSON.stringify(data)); } catch(e) {} }
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function addTask(uid) {
+  const inp = document.getElementById('inp-' + uid);
+  const name = inp.value.trim();
+  if (!name) return;
+  data[uid].push({ id: Date.now(), name, done: false });
+  save(); render();
+  setTimeout(() => document.getElementById('inp-' + uid).focus(), 10);
+}
+
+function toggle(uid, id) {
+  const t = data[uid].find(t => t.id === id);
+  if (t) { t.done = !t.done; save(); render(); }
+}
+
+function del(uid, id) {
+  data[uid] = data[uid].filter(t => t.id !== id);
+  save(); render();
+}
+
+function clearDone() {
+  UNIS.forEach(u => { data[u.id] = data[u.id].filter(t => !t.done); });
+  save(); render();
+}
+
+function render() {
+  const allTasks = UNIS.flatMap(u => data[u.id]);
+  const total = allTasks.length, done = allTasks.filter(t => t.done).length;
+  document.getElementById('st').textContent = total;
+  document.getElementById('sd').textContent = done;
+  document.getElementById('sr').textContent = total - done;
+  const rem = total - done;
+  document.getElementById('fn').textContent = rem > 0 ? `あと ${rem} 件コピーが必要` : total > 0 ? 'すべて完了！' : '';
+
+  document.getElementById('boards').innerHTML = UNIS.map(u => {
+    const tasks = data[u.id];
+    const cnt = tasks.filter(t => !t.done).length;
+    return `<div class="board">
+      <div class="board-header" style="background:${u.bg};--board-border:${u.border};">
+        <span class="board-name" style="color:${u.text}">${esc(u.name)}</span>
+        <span class="board-count" style="background:${u.countBg};color:${u.countCol}">${cnt}</span>
+      </div>
+      <div class="board-body">
+        ${tasks.map(t => `
+          <div class="task-item${t.done ? ' done' : ''}" onclick="toggle('${u.id}',${t.id})">
+            <div class="check${t.done ? ' on' : ''}" style="${t.done ? 'background:' + u.check : 'border-color:' + u.border}"></div>
+            <span class="task-name">${esc(t.name)}</span>
+            <button class="btn-del" onclick="event.stopPropagation();del('${u.id}',${t.id})">×</button>
+          </div>`).join('')}
+        <div style="padding:3px 0 2px;">
+          <input class="inline-input" id="inp-${u.id}" placeholder="追加..." onkeydown="if(event.key==='Enter')addTask('${u.id}')" />
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+const d = new Date();
+document.getElementById('ds').textContent = d.toLocaleDateString('ja-JP', {year:'numeric', month:'short', day:'numeric', weekday:'short'});
+
+load(); render();
+</script>
+</body>
+</html>

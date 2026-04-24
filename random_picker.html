@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>出席番号くじ引き</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #F7F6F3;
+  --surface: #FFFFFF;
+  --surface2: #F0EEE9;
+  --border: rgba(0,0,0,0.10);
+  --border-med: rgba(0,0,0,0.18);
+  --text-primary: #1A1A18;
+  --text-secondary: #6B6A65;
+  --text-hint: #A09F9A;
+  --blue: #185FA5;
+  --blue-light: #E6F1FB;
+  --blue-border: #378ADD;
+  --blue-text: #0C447C;
+  --school-color: #185FA5;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+}
+
+body {
+  font-family: 'Noto Sans JP', sans-serif;
+  background: var(--bg);
+  color: var(--text-primary);
+  min-height: 100vh;
+  padding: 2rem 1.5rem 4rem;
+}
+
+.container { max-width: 640px; margin: 0 auto; }
+
+.topbar {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 0.5px solid var(--border-med);
+}
+.app-title { font-size: 22px; font-weight: 500; }
+.app-sub { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-secondary); margin-left: 10px; }
+
+/* ── タブ ── */
+.tab-bar {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+  align-items: center;
+}
+.tab {
+  font-family: inherit;
+  font-size: 13px;
+  padding: 5px 14px;
+  border-radius: 99px;
+  border: 0.5px solid var(--border-med);
+  background: var(--surface);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background .12s, color .12s, border-color .12s;
+  white-space: nowrap;
+}
+.tab:hover { background: var(--surface2); }
+.tab.active {
+  background: var(--text-primary);
+  color: var(--surface);
+  border-color: var(--text-primary);
+}
+.tab.add-tab {
+  background: transparent;
+  border-style: dashed;
+  color: var(--text-hint);
+  padding: 5px 11px;
+}
+.tab.add-tab:hover { color: var(--text-secondary); background: var(--surface2); }
+
+/* ── 講座パネル ── */
+.course-panel {
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+}
+.panel-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+.course-name-input {
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  outline: none;
+  flex: 1;
+  min-width: 120px;
+  border-bottom: 0.5px solid var(--border-med);
+  padding-bottom: 2px;
+}
+.course-name-input:focus { border-bottom-color: var(--blue-border); }
+
+/* ── スクールカラー ── */
+.color-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+.color-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+.color-swatch-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+input[type="color"] {
+  -webkit-appearance: none;
+  width: 32px;
+  height: 32px;
+  border: 1.5px solid var(--border-med);
+  border-radius: 6px;
+  padding: 2px;
+  cursor: pointer;
+  background: var(--surface);
+}
+input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+input[type="color"]::-webkit-color-swatch { border: none; border-radius: 3px; }
+.color-hex {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-family: monospace;
+  letter-spacing: 0.05em;
+}
+.color-presets {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+.color-preset {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(0,0,0,0.12);
+  cursor: pointer;
+  transition: transform .1s, border-color .1s;
+  flex-shrink: 0;
+}
+.color-preset:hover { transform: scale(1.2); border-color: rgba(0,0,0,0.3); }
+
+.btn-sm {
+  font-family: inherit;
+  font-size: 12px;
+  padding: 5px 12px;
+  border-radius: var(--radius-md);
+  background: transparent;
+  border: 0.5px solid var(--border-med);
+  color: var(--text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .12s, color .12s;
+}
+.btn-sm:hover { background: var(--surface2); color: var(--text-primary); }
+.btn-sm.danger:hover { color: #D94040; border-color: #D94040; background: transparent; }
+
+.csv-hint {
+  font-size: 11px;
+  color: var(--text-hint);
+  margin-bottom: 6px;
+  line-height: 1.7;
+}
+.csv-hint code {
+  background: var(--surface2);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 11px;
+}
+
+/* ── 番号タグ ── */
+.sec-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; }
+.absent-hint { font-size: 11px; color: var(--text-hint); margin-bottom: 8px; }
+
+.tag-area {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  padding: 10px;
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius-md);
+  min-height: 44px;
+  background: var(--surface2);
+  margin-bottom: 1rem;
+}
+.tag {
+  font-family: inherit;
+  font-size: 12px;
+  padding: 3px 9px;
+  border-radius: 99px;
+  background: var(--surface);
+  border: 0.5px solid var(--border-med);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: opacity .15s;
+  line-height: 1.5;
+}
+.tag:hover { opacity: .7; }
+.tag.absent { text-decoration: line-through; opacity: .32; }
+.tag.picked {
+  font-weight: 500;
+}
+.tag-empty { font-size: 12px; color: var(--text-hint); padding: 4px 2px; }
+
+/* ── 抽選結果 ── */
+.result-box {
+  border-radius: var(--radius-lg);
+  border: 0.5px solid var(--border);
+  background: var(--surface);
+  padding: 1.75rem 1.5rem 1.5rem;
+  text-align: center;
+  margin-bottom: 1rem;
+  min-height: 150px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  transition: border-color .3s;
+}
+.result-box::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background: var(--school-color);
+  opacity: 0;
+  transition: opacity .3s;
+}
+.result-box.has-result::before { opacity: 1; }
+
+.result-info-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+.result-num {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: opacity .1s;
+}
+.result-student-id {
+  font-size: 12px;
+  color: var(--text-hint);
+  transition: opacity .1s;
+}
+.result-university {
+  font-size: 11px;
+  color: var(--text-hint);
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+  min-height: 14px;
+  transition: opacity .1s;
+}
+.result-furigana {
+  font-size: 13px;
+  color: var(--text-secondary);
+  letter-spacing: 0.05em;
+  margin-bottom: 2px;
+  min-height: 18px;
+  transition: opacity .1s;
+}
+.result-name {
+  font-size: 48px;
+  font-weight: 500;
+  line-height: 1.15;
+  color: var(--text-primary);
+  transition: font-size .1s, opacity .1s;
+}
+.result-name.rolling { opacity: .35; font-size: 36px; }
+.result-label { font-size: 13px; color: var(--text-secondary); margin-top: 8px; }
+
+.btn-main {
+  width: 100%;
+  padding: 13px;
+  font-size: 15px;
+  font-weight: 500;
+  font-family: inherit;
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  border: 0.5px solid var(--border-med);
+  cursor: pointer;
+  color: var(--text-primary);
+  transition: background .1s, transform .1s;
+}
+.btn-main:hover { background: var(--surface2); }
+.btn-main:active { transform: scale(.98); }
+
+.action-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+.action-row .btn-sm { flex: 1; min-width: 80px; text-align: center; }
+
+/* ── 履歴 ── */
+.history-wrap { margin-top: 0.5rem; }
+.history {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+.history span {
+  font-size: 12px;
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: 99px;
+  padding: 2px 10px;
+  color: var(--text-secondary);
+}
+
+/* ── CSV読み込みエリア ── */
+.file-drop {
+  border: 0.5px dashed var(--border-med);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--text-hint);
+  text-align: center;
+  cursor: pointer;
+  transition: background .12s, border-color .12s;
+  margin-bottom: 8px;
+}
+.file-drop:hover { background: var(--surface2); border-color: var(--blue-border); color: var(--text-secondary); }
+input[type=file] { display: none; }
+
+/* ── 区切り線 ── */
+.panel-divider {
+  border: none;
+  border-top: 0.5px solid var(--border);
+  margin: 10px 0;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="topbar">
+    <div>
+      <span class="app-title">出席番号くじ引き</span>
+      <span class="app-sub">random pick</span>
+    </div>
+  </div>
+
+  <!-- タブ -->
+  <div class="tab-bar" id="tabBar"></div>
+
+  <!-- 講座設定パネル -->
+  <div class="course-panel" id="coursePanel">
+    <!-- 講座名 -->
+    <div class="panel-row">
+      <input class="course-name-input" id="courseNameInput" placeholder="講座名を入力..." maxlength="30">
+      <button class="btn-sm" onclick="saveName()">名前を保存</button>
+      <button class="btn-sm danger" onclick="deleteCourse()">この講座を削除</button>
+    </div>
+    <!-- 大学名 -->
+    <div class="panel-row" style="margin-bottom:6px;">
+      <span class="color-label" style="white-space:nowrap;">大学名</span>
+      <input class="course-name-input" id="universityNameInput" placeholder="大学名を入力（任意）..." maxlength="50" style="font-size:13px;font-weight:400;">
+      <button class="btn-sm" onclick="saveUniversity()">保存</button>
+    </div>
+
+    <!-- スクールカラー -->
+    <div class="color-row">
+      <span class="color-label">スクールカラー</span>
+      <div class="color-swatch-wrap">
+        <input type="color" id="schoolColorInput" value="#185FA5" oninput="onColorInput(this.value)" onchange="saveColor(this.value)">
+        <span class="color-hex" id="colorHex">#185FA5</span>
+      </div>
+      <div class="color-presets" id="colorPresets"></div>
+    </div>
+
+    <hr class="panel-divider">
+
+    <!-- CSV読み込み -->
+    <div class="csv-hint">
+      CSVフォーマット（1行目はヘッダー行）:<br>
+      <code>出席番号,学籍番号,氏名,読み仮名</code><br>
+      ※ 学籍番号・読み仮名は省略可。姓・名を別列にする場合は <code>出席番号,学籍番号,姓,名,読み仮名</code>
+    </div>
+    <label class="file-drop" for="csvFile">CSVファイルをクリックして読み込む</label>
+    <input type="file" id="csvFile" accept=".csv,text/csv" onchange="loadCSV(event)">
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button class="btn-sm danger" onclick="clearStudents()">名簿をクリア</button>
+    </div>
+  </div>
+
+  <!-- タグエリア -->
+  <div class="sec-label">欠席者をタップして除外</div>
+  <div class="absent-hint">タップで除外 / もう一度タップで復帰</div>
+  <div class="tag-area" id="tagArea"></div>
+
+  <!-- 結果 -->
+  <div class="result-box" id="resultBox">
+    <div class="result-university" id="resultUniversity"></div>
+    <div class="result-info-row">
+      <div class="result-num" id="resultNum"></div>
+      <div class="result-student-id" id="resultStudentId"></div>
+    </div>
+    <div class="result-furigana" id="resultFurigana"></div>
+    <div class="result-name" id="resultName">—</div>
+    <div class="result-label" id="resultLabel">ボタンを押してスタート</div>
+  </div>
+
+  <button class="btn-main" onclick="draw()">抽選する</button>
+
+  <div class="action-row">
+    <button class="btn-sm" onclick="markCurrentAbsent()">今の番号を除外</button>
+    <button class="btn-sm" onclick="undoLast()">最後の履歴を戻す</button>
+    <button class="btn-sm" onclick="clearHistory()">履歴リセット</button>
+    <button class="btn-sm" onclick="resetAbsent()">全リセット</button>
+  </div>
+
+  <div class="history-wrap" id="historyWrap" style="display:none">
+    <div class="sec-label">今日の抽選履歴</div>
+    <div class="history" id="historyList"></div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'rpicker_v2';
+
+// ── プリセットカラー
+const PRESET_COLORS = [
+  '#185FA5','#D94040','#2E8B57','#9B59B6','#E67E22',
+  '#1A7A8A','#C0392B','#16A085','#8E44AD','#2C3E50',
+  '#E91E8C','#F39C12','#27AE60','#2980B9','#7F8C8D',
+];
+
+// ── データ構造
+// state.courses = [ { id, name, university, color, students:[{num, studentId, name, furigana}] } ]
+// state.session[courseId] = { absent:[num,...], history:[num,...], lastDrawn }
+
+let state = { courses: [], session: {} };
+let currentId = null;
+let rolling = null;
+
+// ── 永続化
+function loadState() {
+  try {
+    const r = localStorage.getItem(STORAGE_KEY);
+    if (r) state = JSON.parse(r);
+    // v1からのマイグレーション
+    if (!state.courses) state.courses = [];
+    state.courses.forEach(c => {
+      if (!c.color) c.color = '#185FA5';
+      if (!c.university) c.university = '';
+      if (c.students) c.students = c.students.map(s => ({
+        num: s.num,
+        studentId: s.studentId || '',
+        name: s.name || '',
+        furigana: s.furigana || '',
+      }));
+    });
+  } catch(e) {}
+  if (!state.courses) state.courses = [];
+  if (!state.session) state.session = {};
+}
+
+function saveState() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
+}
+
+// ── 初期化
+function init() {
+  renderColorPresets();
+  loadState();
+  if (state.courses.length === 0) addCourse('新しい講座');
+  else currentId = state.courses[0].id;
+  renderAll();
+}
+
+function makeid() { return 'c' + Date.now() + Math.floor(Math.random()*1000); }
+
+function addCourse(name) {
+  const id = makeid();
+  state.courses.push({ id, name: name || '新しい講座', university: '', color: '#185FA5', students: [] });
+  state.session[id] = { absent: [], history: [], lastDrawn: null };
+  currentId = id;
+  saveState();
+}
+
+function getCurrentCourse() {
+  return state.courses.find(c => c.id === currentId) || state.courses[0];
+}
+
+function getSession() {
+  if (!state.session[currentId]) state.session[currentId] = { absent: [], history: [], lastDrawn: null };
+  return state.session[currentId];
+}
+
+// ── スクールカラー
+function renderColorPresets() {
+  const wrap = document.getElementById('colorPresets');
+  wrap.innerHTML = '';
+  PRESET_COLORS.forEach(col => {
+    const div = document.createElement('div');
+    div.className = 'color-preset';
+    div.style.background = col;
+    div.title = col;
+    div.onclick = () => {
+      document.getElementById('schoolColorInput').value = col;
+      onColorInput(col);
+      saveColor(col);
+    };
+    wrap.appendChild(div);
+  });
+}
+
+function onColorInput(val) {
+  document.getElementById('colorHex').textContent = val.toUpperCase();
+  applySchoolColor(val);
+}
+
+function saveColor(val) {
+  const c = getCurrentCourse();
+  c.color = val;
+  saveState();
+  renderTabs();
+}
+
+function applySchoolColor(color) {
+  document.documentElement.style.setProperty('--school-color', color);
+}
+
+// ── タブ描画
+function renderTabs() {
+  const bar = document.getElementById('tabBar');
+  bar.innerHTML = '';
+  state.courses.forEach(c => {
+    const btn = document.createElement('button');
+    const isActive = c.id === currentId;
+    btn.className = 'tab' + (isActive ? ' active' : '');
+    btn.textContent = c.name;
+    if (isActive && c.color) {
+      btn.style.background = c.color;
+      btn.style.borderColor = c.color;
+      btn.style.color = '#FFFFFF';
+    }
+    btn.onclick = () => { currentId = c.id; renderAll(); };
+    bar.appendChild(btn);
+  });
+  const add = document.createElement('button');
+  add.className = 'tab add-tab';
+  add.textContent = '＋ 講座追加';
+  add.onclick = () => { addCourse('新しい講座'); renderAll(); };
+  bar.appendChild(add);
+}
+
+// ── 講座パネル
+function renderPanel() {
+  const c = getCurrentCourse();
+  document.getElementById('courseNameInput').value = c.name;
+  document.getElementById('universityNameInput').value = c.university || '';
+  const color = c.color || '#185FA5';
+  document.getElementById('schoolColorInput').value = color;
+  document.getElementById('colorHex').textContent = color.toUpperCase();
+  applySchoolColor(color);
+}
+
+function saveName() {
+  const c = getCurrentCourse();
+  const v = document.getElementById('courseNameInput').value.trim();
+  if (!v) return;
+  c.name = v;
+  saveState();
+  renderTabs();
+}
+
+function saveUniversity() {
+  const c = getCurrentCourse();
+  c.university = document.getElementById('universityNameInput').value.trim();
+  saveState();
+  // 結果表示中なら即更新
+  const sess = getSession();
+  if (sess.lastDrawn !== null) {
+    const s = c.students.find(s => s.num === sess.lastDrawn);
+    if (s) setResultDisplay(s, '前回の結果', false);
+  }
+}
+
+function deleteCourse() {
+  if (state.courses.length <= 1) { alert('最後の講座は削除できません。'); return; }
+  if (!confirm(`「${getCurrentCourse().name}」を削除しますか？`)) return;
+  state.courses = state.courses.filter(c => c.id !== currentId);
+  delete state.session[currentId];
+  currentId = state.courses[0].id;
+  saveState();
+  renderAll();
+}
+
+function clearStudents() {
+  if (!confirm('この講座の名簿をクリアしますか？')) return;
+  getCurrentCourse().students = [];
+  const sess = getSession();
+  sess.absent = []; sess.history = []; sess.lastDrawn = null;
+  saveState();
+  renderAll();
+}
+
+// ── CSV読み込み
+function loadCSV(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    parseCSV(e.target.result);
+    event.target.value = '';
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+function parseCSV(text) {
+  const lines = text.replace(/\r/g, '').split('\n').filter(l => l.trim());
+  if (lines.length === 0) return;
+
+  const splitLine = line => line.split(',').map(s => s.trim().replace(/^["']|["']$/g, ''));
+
+  // ヘッダー行の検出
+  let start = 0;
+  let colMap = { num: 0, studentId: 1, name: 2, furigana: 3 }; // デフォルト配置
+  let hasSplitName = false; // 姓・名が別列か
+
+  const firstCols = splitLine(lines[0]);
+  if (isNaN(parseInt(firstCols[0]))) {
+    // ヘッダー行あり → 列名でマッピング
+    start = 1;
+    const headers = firstCols.map(h => h.toLowerCase().replace(/\s/g, ''));
+    colMap = {};
+
+    const NUM_KEYS    = ['出席番号','番号','no','num','number','seq'];
+    const STID_KEYS   = ['学籍番号','学号','studentid','id'];
+    const NAME_KEYS   = ['氏名','名前','name','fullname'];
+    const SEI_KEYS    = ['姓','lastName','last_name','sei','family'];
+    const MEI_KEYS    = ['名','firstName','first_name','mei','given'];
+    const FURI_KEYS   = ['読み仮名','読みがな','ふりがな','フリガナ','furigana','yomi','kana'];
+
+    const find = (keys) => {
+      for (const k of keys) {
+        const idx = headers.findIndex(h => h.includes(k.toLowerCase()));
+        if (idx >= 0) return idx;
+      }
+      return -1;
+    };
+
+    colMap.num      = find(NUM_KEYS);
+    colMap.studentId = find(STID_KEYS);
+    colMap.name     = find(NAME_KEYS);
+    colMap.sei      = find(SEI_KEYS);
+    colMap.mei      = find(MEI_KEYS);
+    colMap.furigana = find(FURI_KEYS);
+
+    if (colMap.num < 0) colMap.num = 0; // 見つからない場合は先頭列
+    if (colMap.name < 0 && colMap.sei >= 0) hasSplitName = true;
+    if (colMap.name < 0 && colMap.sei < 0) {
+      // ヘッダーから判定不能 → 2列目を名前とする
+      colMap.name = 1;
+    }
+  } else {
+    // ヘッダーなし → 列数で判定
+    // 2列: 出席番号,氏名
+    // 3列: 出席番号,氏名,読み仮名  または  出席番号,姓,名
+    // 4列: 出席番号,学籍番号,氏名,読み仮名
+    // 5列: 出席番号,学籍番号,姓,名,読み仮名
+    const nCols = firstCols.length;
+    colMap = { num: 0, studentId: -1, name: 1, furigana: -1 };
+    if (nCols === 3) {
+      // 3列目が数字っぽければ 出席番号,姓,名、そうでなければ 出席番号,氏名,読み仮名
+      const col2 = firstCols[2];
+      const looksLikeName = isNaN(parseInt(col2));
+      if (looksLikeName) {
+        // 出席番号,姓,名
+        colMap.name = -1; colMap.sei = 1; colMap.mei = 2; hasSplitName = true;
+      } else {
+        colMap.name = 1; colMap.furigana = 2;
+      }
+    } else if (nCols === 4) {
+      colMap = { num: 0, studentId: 1, name: 2, furigana: 3 };
+    } else if (nCols >= 5) {
+      colMap = { num: 0, studentId: 1, sei: 2, mei: 3, furigana: 4, name: -1 };
+      hasSplitName = true;
+    }
+  }
+
+  const students = [];
+  for (let i = start; i < lines.length; i++) {
+    const cols = splitLine(lines[i]);
+    if (cols.length < 2) continue;
+    const num = parseInt(cols[colMap.num]);
+    if (isNaN(num)) continue;
+
+    let name = '';
+    if (hasSplitName) {
+      const sei = colMap.sei >= 0 && colMap.sei < cols.length ? cols[colMap.sei] : '';
+      const mei = colMap.mei >= 0 && colMap.mei < cols.length ? cols[colMap.mei] : '';
+      name = (sei + ' ' + mei).trim();
+    } else {
+      name = colMap.name >= 0 && colMap.name < cols.length ? cols[colMap.name] : '';
+    }
+
+    const studentId = colMap.studentId >= 0 && colMap.studentId < cols.length ? cols[colMap.studentId] : '';
+    const furigana  = colMap.furigana  >= 0 && colMap.furigana  < cols.length ? cols[colMap.furigana]  : '';
+
+    if (name.trim()) students.push({ num, studentId: studentId.trim(), name: name.trim(), furigana: furigana.trim() });
+  }
+
+  if (students.length === 0) { alert('名簿を読み込めませんでした。フォーマットを確認してください。'); return; }
+
+  const c = getCurrentCourse();
+  c.students = students;
+  state.session[currentId] = { absent: [], history: [], lastDrawn: null };
+  saveState();
+  renderAll();
+  alert(`${students.length}名の名簿を読み込みました。`);
+}
+
+// ── タグ描画
+function renderTags() {
+  const area = document.getElementById('tagArea');
+  area.innerHTML = '';
+  const c = getCurrentCourse();
+  const sess = getSession();
+  const absentSet = new Set(sess.absent);
+  const color = c.color || '#185FA5';
+
+  if (c.students.length === 0) {
+    area.innerHTML = '<span class="tag-empty">名簿が未登録です。CSVを読み込んでください。</span>';
+    return;
+  }
+
+  c.students.forEach(s => {
+    const btn = document.createElement('button');
+    let cls = 'tag';
+    if (absentSet.has(s.num)) cls += ' absent';
+    else if (s.num === sess.lastDrawn) {
+      cls += ' picked';
+      btn.style.background = hexToRgba(color, 0.12);
+      btn.style.borderColor = color;
+      btn.style.color = color;
+    }
+    btn.className = cls;
+    btn.textContent = s.num + '番';
+    btn.dataset.num = s.num;
+    btn.title = [s.num + '番', s.studentId, s.name, s.furigana].filter(Boolean).join(' / ');
+    btn.onclick = () => toggleAbsent(s.num);
+    area.appendChild(btn);
+  });
+}
+
+function hexToRgba(hex, alpha) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+function toggleAbsent(num) {
+  const sess = getSession();
+  const idx = sess.absent.indexOf(num);
+  if (idx >= 0) sess.absent.splice(idx, 1);
+  else sess.absent.push(num);
+  saveState();
+  renderTags();
+}
+
+// ── 抽選
+function getPool() {
+  const c = getCurrentCourse();
+  const sess = getSession();
+  const absentSet = new Set(sess.absent);
+  const histSet = new Set(sess.history);
+  return c.students.filter(s => !absentSet.has(s.num) && !histSet.has(s.num));
+}
+
+function setResultDisplay(s, label, rolling) {
+  const uniEl   = document.getElementById('resultUniversity');
+  const numEl   = document.getElementById('resultNum');
+  const sidEl   = document.getElementById('resultStudentId');
+  const furiEl  = document.getElementById('resultFurigana');
+  const nameEl  = document.getElementById('resultName');
+  const lblEl   = document.getElementById('resultLabel');
+  const box     = document.getElementById('resultBox');
+
+  if (!s) {
+    uniEl.textContent  = '';
+    numEl.textContent  = '';
+    sidEl.textContent  = '';
+    furiEl.textContent = '';
+    nameEl.textContent = '—';
+    lblEl.textContent  = label || 'ボタンを押してスタート';
+    box.classList.remove('has-result');
+    return;
+  }
+
+  const c = getCurrentCourse();
+  uniEl.textContent  = c.university || '';
+  numEl.textContent  = s.num + '番';
+  sidEl.textContent  = s.studentId ? '学籍番号: ' + s.studentId : '';
+  furiEl.textContent = s.furigana || '';
+  nameEl.textContent = s.name + ' さん';
+  lblEl.textContent  = label || '選ばれました！';
+  if (!rolling) box.classList.add('has-result');
+}
+
+function draw() {
+  if (rolling) clearInterval(rolling);
+  const pool   = getPool();
+  const nameEl = document.getElementById('resultName');
+  const box    = document.getElementById('resultBox');
+
+  if (pool.length === 0) {
+    setResultDisplay(null, getCurrentCourse().students.length === 0
+      ? '名簿を読み込んでください'
+      : 'すべての番号を抽選済みです');
+    return;
+  }
+
+  nameEl.classList.add('rolling');
+  box.classList.remove('has-result');
+  const c0 = getCurrentCourse();
+  document.getElementById('resultUniversity').textContent = c0.university || '';
+  let count = 0;
+  rolling = setInterval(() => {
+    const s = pool[Math.floor(Math.random() * pool.length)];
+    document.getElementById('resultNum').textContent = s.num + '番';
+    document.getElementById('resultStudentId').textContent = '';
+    document.getElementById('resultFurigana').textContent = s.furigana || '';
+    nameEl.textContent = s.name + ' さん';
+    count++;
+    if (count > 16) {
+      clearInterval(rolling); rolling = null;
+      const chosen = pool[Math.floor(Math.random() * pool.length)];
+      nameEl.classList.remove('rolling');
+      setResultDisplay(chosen, '選ばれました！', false);
+      const sess = getSession();
+      sess.lastDrawn = chosen.num;
+      sess.history.push(chosen.num);
+      saveState();
+      renderTags();
+      renderHistory();
+    }
+  }, 55);
+}
+
+// ── アクション
+function markCurrentAbsent() {
+  const sess = getSession();
+  if (sess.lastDrawn === null) return;
+  if (!sess.absent.includes(sess.lastDrawn)) sess.absent.push(sess.lastDrawn);
+  saveState();
+  renderTags();
+}
+
+function undoLast() {
+  const sess = getSession();
+  if (sess.history.length === 0) return;
+  sess.history.pop();
+  sess.lastDrawn = sess.history.length > 0 ? sess.history[sess.history.length - 1] : null;
+  saveState();
+  if (sess.lastDrawn !== null) {
+    const c = getCurrentCourse();
+    const s = c.students.find(s => s.num === sess.lastDrawn);
+    if (s) setResultDisplay(s, '前回の結果', false);
+  } else {
+    setResultDisplay(null);
+  }
+  renderTags();
+  renderHistory();
+}
+
+function clearHistory() {
+  const sess = getSession();
+  sess.history = []; sess.lastDrawn = null;
+  saveState();
+  setResultDisplay(null);
+  renderTags();
+  renderHistory();
+}
+
+function resetAbsent() {
+  const sess = getSession();
+  sess.absent = []; sess.history = []; sess.lastDrawn = null;
+  saveState();
+  setResultDisplay(null);
+  renderTags();
+  renderHistory();
+}
+
+// ── 履歴描画
+function renderHistory() {
+  const sess = getSession();
+  const wrap = document.getElementById('historyWrap');
+  const list = document.getElementById('historyList');
+  if (sess.history.length === 0) { wrap.style.display = 'none'; return; }
+  wrap.style.display = '';
+  const c = getCurrentCourse();
+  list.innerHTML = sess.history.map((num, i) => {
+    const s = c.students.find(s => s.num === num);
+    let label;
+    if (s) {
+      const furi = s.furigana ? `（${s.furigana}）` : '';
+      label = `${num}番 ${s.name}${furi} さん`;
+    } else {
+      label = `${num}番`;
+    }
+    return `<span>${i + 1}回目: ${label}</span>`;
+  }).join('');
+}
+
+function renderAll() {
+  renderTabs();
+  renderPanel();
+  renderTags();
+  // 結果表示復元
+  const sess = getSession();
+  const c = getCurrentCourse();
+  if (sess.lastDrawn !== null) {
+    const s = c.students.find(s => s.num === sess.lastDrawn);
+    if (s) setResultDisplay(s, '前回の結果', false);
+    else setResultDisplay(null);
+  } else {
+    setResultDisplay(null);
+  }
+  renderHistory();
+}
+
+init();
+</script>
+</body>
+</html>
