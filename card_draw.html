@@ -173,6 +173,14 @@ textarea { width: 100%; min-height: 12em; line-height: 1.7; resize: vertical; }
         <p class="hint">カードを書き換えたり、コードを変えたりしたら、QRも新しくなります。前のQRで開いた学生には、古いカードのまま表示されます。</p>
       </div>
     </div>
+    <div id="shortWrap" style="margin-top:14px;padding-top:12px;border-top:0.5px solid var(--border)">
+      <h2>短いURL（手で打つ用）</h2>
+      <div class="row" style="margin-bottom:6px">
+        <span class="url-box" id="shortUrl" style="margin:0;flex:1;font-size:14px;color:var(--text-primary)"></span>
+        <button class="btn" id="copyShort">コピー</button>
+      </div>
+      <p class="hint" id="shortNote"></p>
+    </div>
   </div>
 
 </div>
@@ -199,6 +207,7 @@ textarea { width: 100%; min-height: 12em; line-height: 1.7; resize: vertical; }
 const BUILTIN = [
   {
     id: 'builtin-boe-u5',
+    key: 'u5',            // 短いURL：card_draw.html#u5
     title: 'Basics of English · Unit 5 · Complaints',
     prompt: 'Your problem',
     cards: [
@@ -215,6 +224,10 @@ const LS_SETS = 'cardDraw.sets.v1';
 const LS_STATE = 'cardDraw.state.v1';
 
 /* ─── 共通 ─── */
+/* 短いURLのときのコード：日本時間の日付（日付が変わると新しく引ける） */
+function todayCode() {
+  return 'day:' + new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tokyo' }).format(new Date());
+}
 function hashStr(s) {           // FNV-1a 32bit
   let h = 0x811c9dc5;
   for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193); }
@@ -316,6 +329,17 @@ function startTeacher() {
     $('qr').innerHTML = '';
     if (cards.length) drawQR($('qr'), url, 180);
     $('bigTitle').textContent = data.t;
+    // 短いURL（ファイルに組み込んだセットだけ）
+    const b = BUILTIN.find(x => x.id === currentId && x.key);
+    $('shortWrap').hidden = !b;
+    if (b) {
+      const su = location.origin + location.pathname + '#' + b.key;
+      $('shortUrl').textContent = su.replace(/^https?:\/\//, '');
+      $('shortUrl').dataset.url = su;
+      const same = b.title === data.t && (b.prompt || '') === data.p && b.cards.join('\n') === cards.join('\n');
+      $('shortNote').textContent = (same ? '' : '※短いURLでは、ここで書き換えた内容ではなく、ファイルに組み込まれた元のカードが出ます。 ')
+        + '短いURLでは上の「今日のコード」は使わず、日本時間の日付をコードにします。同じ日のあいだは同じスマホで同じカードが出て、翌日以降は新しく引けます。';
+    }
     saveState();
   }
 
@@ -344,6 +368,11 @@ function startTeacher() {
       () => { $('copyUrl').textContent = 'コピーしました'; setTimeout(() => $('copyUrl').textContent = 'URLをコピー', 1500); },
       () => { const r = document.createRange(); r.selectNodeContents($('urlBox')); getSelection().removeAllRanges(); getSelection().addRange(r); });
   };
+  $('copyShort').onclick = () => {
+    const u = $('shortUrl').dataset.url;
+    (navigator.clipboard ? navigator.clipboard.writeText(u) : Promise.reject()).then(
+      () => { $('copyShort').textContent = 'コピーしました'; setTimeout(() => $('copyShort').textContent = 'コピー', 1500); }, () => {});
+  };
   $('bigQrBtn').onclick = () => {
     const box = $('bigQrBox'); box.innerHTML = '';
     const side = Math.min(innerWidth, innerHeight) * 0.68;
@@ -363,6 +392,11 @@ function startTeacher() {
     try { const d = decodeData(m[1]); if (Array.isArray(d.c) && d.c.length) { startStudent(d); return; } } catch (e) {}
     document.body.innerHTML = '<p style="text-align:center;margin-top:3rem">リンクが読み取れませんでした。QRをもう一度読み取ってください。</p>';
     return;
+  }
+  const k = location.hash.match(/^#([A-Za-z0-9]+)$/);
+  if (k) {
+    const b = BUILTIN.find(x => x.key && x.key.toLowerCase() === k[1].toLowerCase());
+    if (b) { startStudent({ t: b.title, p: b.prompt || '', c: b.cards, k: todayCode() }); return; }
   }
   startTeacher();
 })();
