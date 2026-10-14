@@ -85,12 +85,6 @@ textarea { width: 100%; min-height: 12em; line-height: 1.7; resize: vertical; }
   max-height: 6.5em; overflow: auto;
 }
 
-table.assign { width: 100%; border-collapse: collapse; font-size: 13px; }
-table.assign th, table.assign td { text-align: left; padding: 5px 8px; border-bottom: 0.5px solid var(--border); vertical-align: top; }
-table.assign th { white-space: nowrap; font-size: 11px; font-weight: 500; color: var(--text-secondary); }
-table.assign td.n { width: 3.5em; font-variant-numeric: tabular-nums; color: var(--text-secondary); }
-table.assign td.c { width: 3em; color: var(--accent); font-weight: 500; }
-.tally { font-size: 11px; color: var(--text-hint); margin-top: 8px; }
 
 /* 全画面QR */
 #bigqr {
@@ -162,7 +156,7 @@ table.assign td.c { width: 3em; color: var(--accent); font-weight: 500; }
       <span class="code-box" id="codeBox">----</span>
       <button class="btn" id="newCode">コードを変える</button>
     </div>
-    <p class="hint">コードとカードの中身が同じあいだは、同じ出席番号に同じカードが出ます。授業ごとにコードを変えると、配られる組み合わせが変わります。</p>
+    <p class="hint">学生のスマホは、コードとカードの中身が同じあいだ、最初に引いたカードを覚えていて、もう一度開いても同じカードを表示します（引き直しできません）。授業ごとにコードを変えると、新しく引けるようになります。</p>
   </div>
 
   <div class="panel">
@@ -181,33 +175,21 @@ table.assign td.c { width: 3em; color: var(--accent); font-weight: 500; }
     </div>
   </div>
 
-  <div class="panel">
-    <h2>割り当て一覧</h2>
-    <div class="row">
-      <label class="lbl" for="classSize">人数</label>
-      <input type="number" id="classSize" min="1" max="200" value="30" style="width:6em">
-    </div>
-    <table class="assign"><thead><tr><th>番号</th><th>カード</th><th></th></tr></thead><tbody id="assignBody"></tbody></table>
-    <p class="tally" id="tally"></p>
-  </div>
 </div>
 
 <div id="bigqr">
   <button class="btn close" id="closeBig">閉じる</button>
   <div class="t" id="bigTitle"></div>
   <div id="bigQrBox"></div>
-  <div class="s">スマホで読み取って、出席番号を入れてください</div>
+  <div class="s">スマホで読み取って、カードを1枚引いてください</div>
 </div>
 
 <!-- ───────── 学生画面 ───────── -->
 <div class="container student" id="student" hidden>
   <div class="set-title" id="stTitle"></div>
   <div id="stForm">
-    <p class="ask">出席番号を入れてください<br><span style="font-size:12px;color:var(--text-secondary)">Enter your student number</span></p>
-    <input type="number" id="stNum" min="1" inputmode="numeric">
-    <br>
+    <p class="ask">ボタンを押して、カードを1枚引いてください<br><span style="font-size:12px;color:var(--text-secondary)">Tap to draw your card</span></p>
     <button class="btn primary" id="stDraw">カードを引く</button>
-    <p class="err" id="stErr"></p>
   </div>
   <div id="stResult"></div>
 </div>
@@ -232,30 +214,11 @@ const BUILTIN = [
 const LS_SETS = 'cardDraw.sets.v1';
 const LS_STATE = 'cardDraw.state.v1';
 
-/* ─── 共通：乱数と割り当て ─── */
+/* ─── 共通 ─── */
 function hashStr(s) {           // FNV-1a 32bit
   let h = 0x811c9dc5;
   for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193); }
   return h >>> 0;
-}
-function mulberry32(a) {
-  return function () {
-    a |= 0; a = (a + 0x6D2B79F5) | 0;
-    let t = Math.imul(a ^ (a >>> 15), 1 | a);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-/* 出席番号 n（1始まり）に対するカード番号（0始まり）。
-   カードがC枚なら、番号1〜C・C+1〜2C…の各まとまりの中で全カードが1枚ずつ出る。
-   まとまりごとの並び順は「コード＋カードの中身＋まとまり番号」から決まる。 */
-function cardIndexFor(n, cards, code) {
-  const C = cards.length;
-  const block = Math.floor((n - 1) / C);
-  const rng = mulberry32(hashStr(code + '|' + cards.join('\n') + '|' + block));
-  const order = [...Array(C).keys()];
-  for (let i = C - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
-  return order[(n - 1) % C];
 }
 
 /* QRコードをSVGで描く（外部サービスを使わない） */
@@ -288,27 +251,25 @@ function startStudent(data) {
   document.getElementById('student').hidden = false;
   document.title = data.t || 'カードくじ';
   document.getElementById('stTitle').textContent = data.t || '';
-  const num = document.getElementById('stNum'), err = document.getElementById('stErr');
   const form = document.getElementById('stForm'), out = document.getElementById('stResult');
+  // このリンク（コード＋カードの中身）ごとに、引いたカードをこの端末に記録する
+  const key = 'cardDraw.drawn.' + hashStr(data.k + '|' + data.c.join('\n'));
 
-  function draw() {
-    const n = parseInt(num.value, 10);
-    if (!n || n < 1 || n > 999) { err.textContent = '出席番号を数字で入れてください'; return; }
-    err.textContent = '';
-    const card = data.c[cardIndexFor(n, data.c, data.k)];
-    form.hidden = true;
-    out.innerHTML = '';
+  function show(i, fresh) {
+    form.hidden = true; out.innerHTML = '';
     const box = document.createElement('div'); box.className = 'drawn';
+    if (!fresh) box.style.animation = 'none';
     if (data.p) { const p = document.createElement('div'); p.className = 'prompt'; p.textContent = data.p; box.appendChild(p); }
-    const t = document.createElement('div'); t.className = 'text'; t.textContent = card; box.appendChild(t);
-    const m = document.createElement('div'); m.className = 'meta'; m.textContent = 'No. ' + n; box.appendChild(m);
+    const t = document.createElement('div'); t.className = 'text'; t.textContent = data.c[i]; box.appendChild(t);
     out.appendChild(box);
-    const back = document.createElement('button'); back.className = 'btn again'; back.textContent = '番号を入れ直す';
-    back.onclick = () => { out.innerHTML = ''; form.hidden = false; num.focus(); };
-    out.appendChild(back);
   }
-  document.getElementById('stDraw').onclick = draw;
-  num.addEventListener('keydown', e => { if (e.key === 'Enter') draw(); });
+  function randomIndex(n) {
+    if (window.crypto && crypto.getRandomValues) { const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] % n; }
+    return Math.floor(Math.random() * n);
+  }
+  const saved = lsGet(key, null);
+  if (Number.isInteger(saved) && saved >= 0 && saved < data.c.length) { show(saved, false); return; }
+  document.getElementById('stDraw').onclick = () => { const i = randomIndex(data.c.length); lsSet(key, i); show(i, true); };
 }
 
 /* ─── 教員画面 ─── */
@@ -327,8 +288,7 @@ function startTeacher() {
   }
   function findSet(id) { return allSets().find(s => s.id === id) || allSets()[0]; }
   function randomCode() { return String(1000 + Math.floor(Math.random() * 9000)); }
-  function saveState() { lsSet(LS_STATE, { code, setId: currentId, size: +$('classSize').value || 30 }); }
-  if (state.size) $('classSize').value = state.size;
+  function saveState() { lsSet(LS_STATE, { code, setId: currentId }); }
 
   function fillSelect() {
     $('setSelect').innerHTML = '';
@@ -356,23 +316,11 @@ function startTeacher() {
     $('qr').innerHTML = '';
     if (cards.length) drawQR($('qr'), url, 180);
     $('bigTitle').textContent = data.t;
-    // 割り当て一覧
-    const body = $('assignBody'); body.innerHTML = '';
-    const size = Math.max(1, Math.min(200, +$('classSize').value || 30));
-    const count = new Array(cards.length).fill(0);
-    if (cards.length) for (let n = 1; n <= size; n++) {
-      const i = cardIndexFor(n, cards, code); count[i]++;
-      const tr = document.createElement('tr');
-      tr.innerHTML = '<td class="n"></td><td class="c"></td><td></td>';
-      tr.children[0].textContent = n; tr.children[1].textContent = '#' + (i + 1); tr.children[2].textContent = cards[i];
-      body.appendChild(tr);
-    }
-    $('tally').textContent = cards.length ? 'カード別の枚数：' + count.map((c, i) => '#' + (i + 1) + '＝' + c).join('　') : '';
     saveState();
   }
 
   $('setSelect').onchange = e => { currentId = e.target.value; loadEditor(); render(); };
-  ['setTitle', 'setPrompt', 'setCards', 'classSize'].forEach(id => $(id).addEventListener('input', render));
+  ['setTitle', 'setPrompt', 'setCards'].forEach(id => $(id).addEventListener('input', render));
   $('newCode').onclick = () => { let c; do { c = randomCode(); } while (c === code); code = c; render(); };
   $('saveSet').onclick = () => {
     const s = { id: currentId, title: $('setTitle').value.trim() || '(無題)', prompt: $('setPrompt').value.trim(), cards: editorCards() };
