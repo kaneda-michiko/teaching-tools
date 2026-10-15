@@ -114,6 +114,7 @@ textarea { width: 100%; min-height: 12em; line-height: 1.7; resize: vertical; }
 .drawn .prompt { font-size: 13px; color: var(--accent); font-weight: 500; margin-bottom: 14px; }
 .drawn .text { font-size: 26px; font-weight: 500; line-height: 1.45; }
 .drawn .text > div + div { margin-top: .45em; }
+.drawn .text > div { white-space: pre-wrap; tab-size: 3; }
 .drawn .meta { font-size: 12px; color: var(--text-hint); margin-top: 18px; }
 .again { margin-top: 1.25rem; }
 @media (max-width: 480px) { .drawn .text { font-size: 22px; } }
@@ -205,6 +206,7 @@ textarea { width: 100%; min-height: 12em; line-height: 1.7; resize: vertical; }
 
 <script>
 /* ─── 初期カードセット ─── */
+const PAGE_VERSION = '20261015b';   // 更新のたびに変える（古い版がブラウザに残らないように）
 const BUILTIN = [
   {
     id: 'builtin-boe-u5',
@@ -275,7 +277,7 @@ function startStudent(data) {
     if (!fresh) box.style.animation = 'none';
     if (data.p) { const p = document.createElement('div'); p.className = 'prompt'; p.textContent = data.p; box.appendChild(p); }
     const t = document.createElement('div'); t.className = 'text';
-    data.c[i].split(/\s+\/\s+|\s*／\s*/).forEach(line => { const d = document.createElement('div'); d.textContent = line; t.appendChild(d); });
+    data.c[i].split(/\s*[\/／]\s*/).filter(Boolean).forEach(line => { const d = document.createElement('div'); d.textContent = line; t.appendChild(d); });
     box.appendChild(t);
     out.appendChild(box);
   }
@@ -326,7 +328,7 @@ function startTeacher() {
     const cards = editorCards();
     $('codeBox').textContent = code;
     const data = { t: $('setTitle').value.trim(), p: $('setPrompt').value.trim(), c: cards, k: code };
-    const url = location.origin + location.pathname + '#d=' + encodeData(data);
+    const url = location.origin + location.pathname + '?v=' + PAGE_VERSION + '#d=' + encodeData(data);
     $('urlBox').textContent = cards.length ? url : 'カードを1枚以上入れてください';
     $('openStudent').href = url;
     $('qr').innerHTML = '';
@@ -389,6 +391,8 @@ function startTeacher() {
 }
 
 /* ─── 起動 ─── */
+// URLの#以降だけが変わったとき（同じタブで別のQRを開いたときなど）は、ページを読み込み直す
+window.addEventListener('hashchange', () => location.reload());
 (function () {
   const m = location.hash.match(/#d=([A-Za-z0-9_-]+)/);
   if (m) {
