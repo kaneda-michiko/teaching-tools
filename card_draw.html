@@ -147,7 +147,7 @@ textarea { width: 100%; min-height: 12em; line-height: 1.7; resize: vertical; }
     <div class="row" style="margin-top:8px;margin-bottom:0">
       <button class="btn primary" id="saveSet">保存</button>
       <span class="saved-msg" id="savedMsg"></span>
-      <span class="hint" style="margin-left:auto">1行に1枚。カードの中の改行は「 / 」。保存先はこのブラウザです。</span>
+      <span class="hint" style="margin-left:auto">1行に1枚。カードの中の改行は「 / 」か全角の「／」。保存先はこのブラウザです。</span>
     </div>
   </div>
 
@@ -275,7 +275,7 @@ function startStudent(data) {
     if (!fresh) box.style.animation = 'none';
     if (data.p) { const p = document.createElement('div'); p.className = 'prompt'; p.textContent = data.p; box.appendChild(p); }
     const t = document.createElement('div'); t.className = 'text';
-    data.c[i].split(/\s+\/\s+/).forEach(line => { const d = document.createElement('div'); d.textContent = line; t.appendChild(d); });
+    data.c[i].split(/\s+\/\s+|\s*／\s*/).forEach(line => { const d = document.createElement('div'); d.textContent = line; t.appendChild(d); });
     box.appendChild(t);
     out.appendChild(box);
   }
