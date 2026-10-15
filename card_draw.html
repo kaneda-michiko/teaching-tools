@@ -113,6 +113,7 @@ textarea { width: 100%; min-height: 12em; line-height: 1.7; resize: vertical; }
 @keyframes pop { from { transform: rotateY(90deg) scale(.9); opacity: 0; } to { transform: none; opacity: 1; } }
 .drawn .prompt { font-size: 13px; color: var(--accent); font-weight: 500; margin-bottom: 14px; }
 .drawn .text { font-size: 26px; font-weight: 500; line-height: 1.45; }
+.drawn .text > div + div { margin-top: .45em; }
 .drawn .meta { font-size: 12px; color: var(--text-hint); margin-top: 18px; }
 .again { margin-top: 1.25rem; }
 @media (max-width: 480px) { .drawn .text { font-size: 22px; } }
@@ -142,11 +143,11 @@ textarea { width: 100%; min-height: 12em; line-height: 1.7; resize: vertical; }
       <label class="lbl" for="setPrompt">見出し</label>
       <input type="text" id="setPrompt" placeholder="学生のカードの上に出る一言（空欄可）">
     </div>
-    <textarea id="setCards" placeholder="1行に1枚"></textarea>
+    <textarea id="setCards" placeholder="1行に1枚（カードの中で改行するところは「 / 」で区切る）"></textarea>
     <div class="row" style="margin-top:8px;margin-bottom:0">
       <button class="btn primary" id="saveSet">保存</button>
       <span class="saved-msg" id="savedMsg"></span>
-      <span class="hint" style="margin-left:auto">1行に1枚。保存先はこのブラウザです。</span>
+      <span class="hint" style="margin-left:auto">1行に1枚。カードの中の改行は「 / 」。保存先はこのブラウザです。</span>
     </div>
   </div>
 
@@ -211,12 +212,12 @@ const BUILTIN = [
     title: 'Basics of English · Unit 5 · Complaints',
     prompt: 'Your problem',
     cards: [
-      'My dishwasher broke down.',
-      'My internet keeps cutting out.',
-      'My rental car wasn’t there.',
-      'The milkman didn’t deliver my milk.',
-      'My new glasses weren’t right.',
-      'My food delivery didn’t arrive.'
+      'My dishwasher broke down. / I had to wash everything by hand.',
+      'My internet keeps cutting out. / I can’t watch TV.',
+      'My rental car wasn’t there. / They had no cars for me.',
+      'The milkman didn’t deliver my milk. / Sometimes he leaves it in the wrong place.',
+      'My new glasses weren’t right. / This happened again and again.',
+      'My food delivery didn’t arrive. / The app said it was at my door.'
     ]
   }
 ];
@@ -273,7 +274,9 @@ function startStudent(data) {
     const box = document.createElement('div'); box.className = 'drawn';
     if (!fresh) box.style.animation = 'none';
     if (data.p) { const p = document.createElement('div'); p.className = 'prompt'; p.textContent = data.p; box.appendChild(p); }
-    const t = document.createElement('div'); t.className = 'text'; t.textContent = data.c[i]; box.appendChild(t);
+    const t = document.createElement('div'); t.className = 'text';
+    data.c[i].split(/\s+\/\s+/).forEach(line => { const d = document.createElement('div'); d.textContent = line; t.appendChild(d); });
+    box.appendChild(t);
     out.appendChild(box);
   }
   function randomIndex(n) {
