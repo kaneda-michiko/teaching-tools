@@ -117,7 +117,32 @@ textarea { width: 100%; min-height: 12em; line-height: 1.7; resize: vertical; }
 .drawn .text > div { white-space: pre-wrap; tab-size: 3; }
 .drawn .meta { font-size: 12px; color: var(--text-hint); margin-top: 18px; }
 .again { margin-top: 1.25rem; }
+.drawn .text > .card-img-wrap { white-space: normal; }
+.card-img {
+  display: block; margin: 0 auto; max-width: 100%; max-height: 48vh; object-fit: contain;
+  border-radius: 10px; background: var(--surface2);
+}
+.img-err { font-size: 12px; color: var(--text-hint); padding: 1.2em .5em; background: var(--surface2); border-radius: 10px; }
 @media (max-width: 480px) { .drawn .text { font-size: 22px; } }
+
+/* 画像を選ぶ・プレビュー（教員画面） */
+.picker { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; margin-top: 8px; max-height: 300px; overflow: auto; }
+.picker button {
+  font-family: inherit; background: var(--surface); border: 0.5px solid var(--border-med); border-radius: var(--radius-md);
+  padding: 4px; cursor: pointer; text-align: center;
+}
+.picker button:hover { border-color: var(--accent); }
+.picker img { display: block; width: 100%; height: 70px; object-fit: contain; background: var(--surface2); border-radius: 5px; }
+.picker span { display: block; font-size: 10px; color: var(--text-secondary); margin-top: 3px; word-break: break-all; line-height: 1.3; }
+.preview { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.preview .mini {
+  border: 1px solid var(--accent); border-radius: 10px; padding: 10px 8px; text-align: center; background: var(--surface);
+  font-size: 12px; line-height: 1.45;
+}
+.preview .mini .no { font-size: 10px; color: var(--text-hint); margin-bottom: 4px; }
+.preview .mini > div + div { margin-top: .35em; }
+.preview .mini > div { white-space: pre-wrap; }
+.preview .card-img { max-height: 110px; border-radius: 6px; }
 </style>
 </head>
 <body>
@@ -144,12 +169,28 @@ textarea { width: 100%; min-height: 12em; line-height: 1.7; resize: vertical; }
       <label class="lbl" for="setPrompt">見出し</label>
       <input type="text" id="setPrompt" placeholder="学生のカードの上に出る一言（空欄可）">
     </div>
-    <textarea id="setCards" placeholder="1行に1枚（カードの中で改行するところは「 / 」で区切る）"></textarea>
+    <textarea id="setCards" placeholder="1行に1枚（カードの中で改行するところは「 / 」で区切る。画像は [img:ファイル名]）"></textarea>
     <div class="row" style="margin-top:8px;margin-bottom:0">
       <button class="btn primary" id="saveSet">保存</button>
       <span class="saved-msg" id="savedMsg"></span>
-      <span class="hint" style="margin-left:auto">1行に1枚。カードの中の改行は「 / 」か全角の「／」。保存先はこのブラウザです。</span>
+      <span class="hint" style="margin-left:auto">1行に1枚。カードの中の改行は「 / 」か全角の「／」。画像は [img:ファイル名]。保存先はこのブラウザです。</span>
     </div>
+  </div>
+
+  <div class="panel">
+    <h2>画像を入れる</h2>
+    <p class="hint">GitHubの teaching-tools の <b>images</b> フォルダに置いた画像をカードに入れられます。カーソルのある行（カード）を選んでから画像を押すと、その行に [img:ファイル名] が入ります。行の中の書いた位置に、文字と同じように「 / 」で区切って表示されます（例：<code>[img:dishwasher.jpg] / My dishwasher broke down.</code>）。画像だけのカードも作れます。https:// で始まる画像のURLも [img:https://…] の形で入れられます。</p>
+    <div class="row" style="margin:8px 0 0">
+      <button class="btn" id="loadImgs">images フォルダの画像を表示</button>
+      <span class="hint" id="imgMsg"></span>
+    </div>
+    <div class="picker" id="picker"></div>
+    <p class="hint" style="margin-top:8px">画像の追加：GitHubで images フォルダを開き「Add file → Upload files」。アップロードしてから表示されるまで1〜2分かかることがあります。</p>
+  </div>
+
+  <div class="panel">
+    <h2>カードの見え方</h2>
+    <div class="preview" id="preview"></div>
   </div>
 
   <div class="panel">
@@ -206,7 +247,7 @@ textarea { width: 100%; min-height: 12em; line-height: 1.7; resize: vertical; }
 
 <script>
 /* ─── 初期カードセット ─── */
-const PAGE_VERSION = '20261015b';   // 更新のたびに変える（古い版がブラウザに残らないように）
+const PAGE_VERSION = '20261029a';   // 更新のたびに変える（古い版がブラウザに残らないように）
 const BUILTIN = [
   {
     id: 'builtin-boe-u5',
@@ -262,6 +303,41 @@ function decodeData(s) {
 function lsGet(k, fallback) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : fallback; } catch (e) { return fallback; } }
 function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
 
+/* ─── カードの中身を組み立てる（文字・改行・画像） ─── */
+// 画像は [img:ファイル名] または [画像:ファイル名]。ファイル名だけなら images フォルダの中を見る
+const IMG_RE = /\[(?:img|画像)\s*[:：]\s*([^\]]+?)\s*\]/gi;
+function imgSrc(ref) {
+  ref = ref.trim();
+  if (/^(https?:|data:)/i.test(ref) || ref.startsWith('//')) return ref;
+  ref = ref.replace(/^\.?\/?(images\/)?/i, '');
+  return new URL('images/' + ref.split('/').map(encodeURIComponent).join('/'), location.href).href;
+}
+function cardParts(text) {
+  const imgs = [];
+  const masked = text.replace(IMG_RE, (_, r) => '\u0000' + (imgs.push(r) - 1) + '\u0000');
+  const parts = [];
+  masked.split(/\s*[\/／]\s*/).forEach(seg => {
+    seg.split(/\u0000(\d+)\u0000/).forEach((p, i) => {
+      if (i % 2) parts.push({ img: imgs[+p] });
+      else if (p.trim()) parts.push({ text: p.replace(/^\s+|\s+$/g, '') });
+    });
+  });
+  return parts;
+}
+function fillCard(el, text) {
+  cardParts(text).forEach(part => {
+    const d = document.createElement('div');
+    if (part.img) {
+      d.className = 'card-img-wrap';
+      const im = document.createElement('img');
+      im.className = 'card-img'; im.alt = ''; im.src = imgSrc(part.img);
+      im.onerror = () => { d.innerHTML = ''; const e = document.createElement('div'); e.className = 'img-err'; e.textContent = '画像を読み込めませんでした（' + part.img + '）'; d.appendChild(e); };
+      d.appendChild(im);
+    } else d.textContent = part.text;
+    el.appendChild(d);
+  });
+}
+
 /* ─── 学生画面 ─── */
 function startStudent(data) {
   document.getElementById('student').hidden = false;
@@ -277,7 +353,7 @@ function startStudent(data) {
     if (!fresh) box.style.animation = 'none';
     if (data.p) { const p = document.createElement('div'); p.className = 'prompt'; p.textContent = data.p; box.appendChild(p); }
     const t = document.createElement('div'); t.className = 'text';
-    data.c[i].split(/\s*[\/／]\s*/).filter(Boolean).forEach(line => { const d = document.createElement('div'); d.textContent = line; t.appendChild(d); });
+    fillCard(t, data.c[i]);
     box.appendChild(t);
     out.appendChild(box);
   }
@@ -334,6 +410,13 @@ function startTeacher() {
     $('qr').innerHTML = '';
     if (cards.length) drawQR($('qr'), url, 180);
     $('bigTitle').textContent = data.t;
+    // カードの見え方
+    $('preview').innerHTML = cards.length ? '' : '<span class="hint">カードを入れると、ここに表示されます</span>';
+    cards.forEach((c, i) => {
+      const m = document.createElement('div'); m.className = 'mini';
+      const no = document.createElement('div'); no.className = 'no'; no.textContent = (i + 1);
+      m.appendChild(no); fillCard(m, c); $('preview').appendChild(m);
+    });
     // 短いURL（ファイルに組み込んだセットだけ）
     const b = BUILTIN.find(x => x.id === currentId && x.key);
     $('shortWrap').hidden = !b;
@@ -384,6 +467,37 @@ function startTeacher() {
     drawQR(box, $('openStudent').href, side);
     $('bigqr').classList.add('show');
   };
+  // images フォルダの画像一覧（GitHubの公開APIで読む）
+  $('loadImgs').onclick = async () => {
+    const owner = location.hostname.endsWith('.github.io') ? location.hostname.split('.')[0] : '';
+    const repo = location.pathname.split('/').filter(Boolean)[0] || '';
+    if (!owner || !repo) { $('imgMsg').textContent = 'GitHub Pages で開いたときだけ一覧を出せます（[img:ファイル名] を手で書くことはできます）'; return; }
+    $('imgMsg').textContent = '読み込み中…'; $('picker').innerHTML = '';
+    try {
+      const r = await fetch('https://api.github.com/repos/' + owner + '/' + repo + '/git/trees/HEAD?recursive=1');
+      if (!r.ok) throw new Error(r.status);
+      const files = (await r.json()).tree.map(x => x.path)
+        .filter(p => /^images\//.test(p) && /\.(png|jpe?g|gif|webp|svg)$/i.test(p)).map(p => p.slice(7));
+      $('imgMsg').textContent = files.length ? files.length + '枚' : 'images フォルダに画像がまだありません';
+      files.forEach(f => {
+        const b = document.createElement('button'); b.type = 'button'; b.title = f;
+        const im = document.createElement('img'); im.src = imgSrc(f); im.loading = 'lazy'; im.alt = '';
+        const sp = document.createElement('span'); sp.textContent = f;
+        b.append(im, sp); b.onclick = () => insertImg(f); $('picker').appendChild(b);
+      });
+    } catch (e) { $('imgMsg').textContent = '一覧を読み込めませんでした（' + e.message + '）'; }
+  };
+  // カーソルのある行に [img:…] を足す
+  function insertImg(f) {
+    const ta = $('setCards'), v = ta.value, pos = ta.selectionStart ?? v.length;
+    const ls = v.lastIndexOf('\n', pos - 1) + 1, le = v.indexOf('\n', pos) < 0 ? v.length : v.indexOf('\n', pos);
+    const line = v.slice(ls, le), tag = '[img:' + f + ']';
+    const nl = line.trim() ? line.replace(/\s+$/, '') + ' / ' + tag : tag;
+    ta.value = v.slice(0, ls) + nl + v.slice(le);
+    ta.focus(); ta.selectionStart = ta.selectionEnd = ls + nl.length;
+    render();
+  }
+
   $('closeBig').onclick = () => $('bigqr').classList.remove('show');
   document.addEventListener('keydown', e => { if (e.key === 'Escape') $('bigqr').classList.remove('show'); });
 
