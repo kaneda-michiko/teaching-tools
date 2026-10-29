@@ -122,6 +122,8 @@ textarea { width: 100%; min-height: 12em; line-height: 1.7; resize: vertical; }
   display: block; margin: 0 auto; max-width: 100%; max-height: 48vh; object-fit: contain;
   border-radius: 10px; background: var(--surface2);
 }
+.zoom-hint { font-size: 11px; color: var(--text-hint); margin-top: 4px; font-weight: 400; }
+.preview .zoom-hint { display: none; }
 .img-err { font-size: 12px; color: var(--text-hint); padding: 1.2em .5em; background: var(--surface2); border-radius: 10px; }
 @media (max-width: 480px) { .drawn .text { font-size: 22px; } }
 
@@ -247,7 +249,17 @@ textarea { width: 100%; min-height: 12em; line-height: 1.7; resize: vertical; }
 
 <script>
 /* ─── 初期カードセット ─── */
-const PAGE_VERSION = '20261029a';   // 更新のたびに変える（古い版がブラウザに残らないように）
+const PAGE_VERSION = '20261029c';   // 更新のたびに変える（古い版がブラウザに残らないように）
+/* 道案内（地図A・B）：今いる場所1か所＋行きたい場所2か所の全組み合わせ */
+function mapCards(img) {
+  const P = ['butcher’s', 'post office', 'cinema', 'pharmacy', 'shoe shop', 'phone shop'], out = [];
+  P.forEach(here => {
+    const rest = P.filter(x => x !== here);
+    for (let i = 0; i < rest.length; i++) for (let j = i + 1; j < rest.length; j++)
+      out.push('[img:' + img + '] / 1. あなたは今、' + here + ' にいます。 / 2. あなたは、' + rest[i] + ' と ' + rest[j] + ' に行きたいです。');
+  });
+  return out;
+}
 const BUILTIN = [
   {
     id: 'builtin-boe-u5',
@@ -262,7 +274,9 @@ const BUILTIN = [
       'My new glasses weren’t right. / This happened again and again.',
       'My food delivery didn’t arrive. / The app said it was at my door.'
     ]
-  }
+  },
+  { id: 'builtin-map-a', key: 'mapa', title: 'Directions · Map A', prompt: 'Map A', cards: mapCards('map_a.png') },
+  { id: 'builtin-map-b', key: 'mapb', title: 'Directions · Map B', prompt: 'Map B', cards: mapCards('map_b.png') }
 ];
 const LS_SETS = 'cardDraw.sets.v1';
 const LS_STATE = 'cardDraw.state.v1';
@@ -332,7 +346,9 @@ function fillCard(el, text) {
       const im = document.createElement('img');
       im.className = 'card-img'; im.alt = ''; im.src = imgSrc(part.img);
       im.onerror = () => { d.innerHTML = ''; const e = document.createElement('div'); e.className = 'img-err'; e.textContent = '画像を読み込めませんでした（' + part.img + '）'; d.appendChild(e); };
-      d.appendChild(im);
+      const ln = document.createElement('a'); ln.href = im.src; ln.target = '_blank'; ln.rel = 'noopener';
+      ln.appendChild(im); d.appendChild(ln);
+      const zoom = document.createElement('div'); zoom.className = 'zoom-hint'; zoom.textContent = 'タップで拡大 · Tap to zoom'; d.appendChild(zoom);
     } else d.textContent = part.text;
     el.appendChild(d);
   });
@@ -382,6 +398,7 @@ function startTeacher() {
   }
   function findSet(id) { return allSets().find(s => s.id === id) || allSets()[0]; }
   function randomCode() { return String(1000 + Math.floor(Math.random() * 9000)); }
+  let qrOk = true;
   function saveState() { lsSet(LS_STATE, { code, setId: currentId }); }
 
   function fillSelect() {
@@ -404,11 +421,22 @@ function startTeacher() {
     const cards = editorCards();
     $('codeBox').textContent = code;
     const data = { t: $('setTitle').value.trim(), p: $('setPrompt').value.trim(), c: cards, k: code };
-    const url = location.origin + location.pathname + '?v=' + PAGE_VERSION + '#d=' + encodeData(data);
+    const b = BUILTIN.find(x => x.id === currentId && x.key);
+    const same = !!b && b.title === data.t && (b.prompt || '') === data.p && b.cards.join('\n') === cards.join('\n');
+    const base = location.origin + location.pathname + '?v=' + PAGE_VERSION;
+    let url = base + '#d=' + encodeData(data);
+    $('qr').innerHTML = '';
+    qrOk = true;
+    if (cards.length) {
+      try { drawQR($('qr'), url, 180); }
+      catch (e) {
+        // カードが多くてQRに収まらないとき：組み込みのセットのままなら短いURLにする
+        if (same) { url = base + '#' + b.key; drawQR($('qr'), url, 180); }
+        else { qrOk = false; $('qr').innerHTML = '<p class="hint" style="width:180px;padding:8px">カードの中身が多すぎてQRにできません。カードを減らすか、短くしてください。</p>'; }
+      }
+    }
     $('urlBox').textContent = cards.length ? url : 'カードを1枚以上入れてください';
     $('openStudent').href = url;
-    $('qr').innerHTML = '';
-    if (cards.length) drawQR($('qr'), url, 180);
     $('bigTitle').textContent = data.t;
     // カードの見え方
     $('preview').innerHTML = cards.length ? '' : '<span class="hint">カードを入れると、ここに表示されます</span>';
@@ -418,13 +446,11 @@ function startTeacher() {
       m.appendChild(no); fillCard(m, c); $('preview').appendChild(m);
     });
     // 短いURL（ファイルに組み込んだセットだけ）
-    const b = BUILTIN.find(x => x.id === currentId && x.key);
     $('shortWrap').hidden = !b;
     if (b) {
       const su = location.origin + location.pathname + '#' + b.key;
       $('shortUrl').textContent = su.replace(/^https?:\/\//, '');
       $('shortUrl').dataset.url = su;
-      const same = b.title === data.t && (b.prompt || '') === data.p && b.cards.join('\n') === cards.join('\n');
       $('shortNote').textContent = (same ? '' : '※短いURLでは、ここで書き換えた内容ではなく、ファイルに組み込まれた元のカードが出ます。 ')
         + '短いURLでは上の「今日のコード」は使わず、日本時間の日付をコードにします。同じ日のあいだは同じスマホで同じカードが出て、翌日以降は新しく引けます。';
     }
@@ -462,6 +488,7 @@ function startTeacher() {
       () => { $('copyShort').textContent = 'コピーしました'; setTimeout(() => $('copyShort').textContent = 'コピー', 1500); }, () => {});
   };
   $('bigQrBtn').onclick = () => {
+    if (!qrOk) return;
     const box = $('bigQrBox'); box.innerHTML = '';
     const side = Math.min(innerWidth, innerHeight) * 0.68;
     drawQR(box, $('openStudent').href, side);
