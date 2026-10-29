@@ -249,14 +249,14 @@ textarea { width: 100%; min-height: 12em; line-height: 1.7; resize: vertical; }
 
 <script>
 /* ─── 初期カードセット ─── */
-const PAGE_VERSION = '20261029c';   // 更新のたびに変える（古い版がブラウザに残らないように）
+const PAGE_VERSION = '20261029d';   // 更新のたびに変える（古い版がブラウザに残らないように）
 /* 道案内（地図A・B）：今いる場所1か所＋行きたい場所2か所の全組み合わせ */
-function mapCards(img) {
+function mapCards(img, label) {
   const P = ['butcher’s', 'post office', 'cinema', 'pharmacy', 'shoe shop', 'phone shop'], out = [];
   P.forEach(here => {
     const rest = P.filter(x => x !== here);
     for (let i = 0; i < rest.length; i++) for (let j = i + 1; j < rest.length; j++)
-      out.push('[img:' + img + '] / 1. あなたは今、' + here + ' にいます。 / 2. あなたは、' + rest[i] + ' と ' + rest[j] + ' に行きたいです。');
+      out.push((label ? label + ' / ' : '') + '[img:' + img + '] / 1. あなたは今、' + here + ' にいます。 / 2. あなたは、' + rest[i] + ' と ' + rest[j] + ' に行きたいです。');
   });
   return out;
 }
@@ -275,6 +275,8 @@ const BUILTIN = [
       'My food delivery didn’t arrive. / The app said it was at my door.'
     ]
   },
+  { id: 'builtin-map-ab', key: 'map', title: 'Directions · Map A/B', prompt: 'Your map',
+    cards: mapCards('map_a.png', 'Map A').concat(mapCards('map_b.png', 'Map B')) },
   { id: 'builtin-map-a', key: 'mapa', title: 'Directions · Map A', prompt: 'Map A', cards: mapCards('map_a.png') },
   { id: 'builtin-map-b', key: 'mapb', title: 'Directions · Map B', prompt: 'Map B', cards: mapCards('map_b.png') }
 ];
