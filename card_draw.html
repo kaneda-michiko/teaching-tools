@@ -249,7 +249,7 @@ textarea { width: 100%; min-height: 12em; line-height: 1.7; resize: vertical; }
 
 <script>
 /* ─── 初期カードセット ─── */
-const PAGE_VERSION = '20261104f';   // 更新のたびに変える（古い版がブラウザに残らないように）
+const PAGE_VERSION = '20261104g';   // 更新のたびに変える（古い版がブラウザに残らないように）
 /* 道案内（地図A・B）：今いる場所1か所＋行きたい場所2か所の全組み合わせ */
 function mapCards(img, label, join = 'と') {
   const P = ['butcher’s', 'post office', 'cinema', 'pharmacy', 'shoe shop', 'phone shop'], out = [];
@@ -287,11 +287,11 @@ const BUILTIN = [
       '[img:boe_u6_shimokitazawa.jpg] / ・ライブハウスの生演奏 / ・小さなバーが多く、夜もにぎやか / ・古着屋めぐりができる、のんびりした雰囲気',
       '[img:boe_u6_omotesando.jpg] / ・ケヤキ並木の大通り / ・ブランドのビルの個性的な建築 / ・近くの青山は高級な街',
       '[img:boe_u6_nagatacho.jpg] / ・国会議事堂などの歴史的な建物 / ・まわりに並ぶ高層ビル / ・国会見学をするのにぴったり',
-      '[img:boe_u6_minatomirai.jpg] / ・ランドマークタワーなどの高層ビル / ・海沿いの山下公園を散歩 / ・夜景を見るのにぴったり',
+      '[img:boe_u6_minatomirai.jpg] / ・ランドマークタワーなどの高層ビル / ・海沿いの山下公園を散歩 / ・観覧車から見る、港のすばらしい夜景',
       '[img:boe_u6_enoshima.jpg] / ・海の絶景 / ・晴れた日には富士山を見るのにぴったり / ・東京から約1時間の人気の観光地',
       '[img:boe_u6_kyoto.jpg] / ・祇園のお茶屋など歴史的な街並み / ・世界中から人が集まる人気の観光地 / ・鴨川沿いを散歩',
       '[img:boe_u6_harajuku.jpg] / ・服やアクセサリーなど、ファッションの買い物にぴったり / ・若者に人気の観光地 / ・明治神宮の森を散歩',
-      '[img:boe_u6_shinsekai.jpg] / ・昔はさびれた地域、今は人気の観光地 / ・通天閣などの歴史的な建物 / ・串カツを食べるのにぴったり'
+      '[img:boe_u6_shinsekai.jpg] / ・昔はさびれた地域、今は人気の観光地 / ・通天閣の展望台からの、大阪のすばらしい眺め / ・串カツを食べるのにぴったり'
     ]
   },
   { id: 'builtin-map-ab', key: 'map', title: 'Directions · Map A/B', prompt: 'Your map',
