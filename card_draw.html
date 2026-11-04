@@ -249,7 +249,7 @@ textarea { width: 100%; min-height: 12em; line-height: 1.7; resize: vertical; }
 
 <script>
 /* ─── 初期カードセット ─── */
-const PAGE_VERSION = '20261029e';   // 更新のたびに変える（古い版がブラウザに残らないように）
+const PAGE_VERSION = '20261104a';   // 更新のたびに変える（古い版がブラウザに残らないように）
 /* 道案内（地図A・B）：今いる場所1か所＋行きたい場所2か所の全組み合わせ */
 function mapCards(img, label, join = 'と') {
   const P = ['butcher’s', 'post office', 'cinema', 'pharmacy', 'shoe shop', 'phone shop'], out = [];
@@ -273,6 +273,26 @@ const BUILTIN = [
       'The milkman didn’t deliver my milk. / Sometimes he leaves it in the wrong place.',
       'My new glasses weren’t right. / This happened again and again.',
       'My food delivery didn’t arrive. / The app said it was at my door.'
+    ]
+  },
+  {
+    id: 'builtin-boe-u6',
+    key: 'u6',            // 短いURL：card_draw.html#u6
+    title: 'Basics of English · Unit 6 · A great place to visit',
+    prompt: 'Your place',
+    cards: [
+      '[img:boe_u6_asakusa.jpg] / Senso-ji is the oldest temple in Tokyo. / Nakamise Street is full of small shops and snacks. / You can see Tokyo Skytree across the river.',
+      '[img:boe_u6_gion.jpg] / It is the most famous geisha district in Kyoto. / The streets have historic wooden tea houses. / Yasaka Shrine is a short walk away.',
+      '[img:boe_u6_dotonbori.jpg] / Bright neon signs light up the canal at night. / It is an ideal spot for street food like takoyaki. / The area has a lively nightlife.',
+      '[img:boe_u6_kokusai.jpg] / This busy street is about 1.6 km long. / Many shops sell Okinawan crafts and snacks. / Makishi Public Market sells fresh local food.',
+      '[img:boe_u6_shirakawa.jpg] / The old farmhouses have steep thatched roofs. / The village is a UNESCO World Heritage Site. / Many people come in winter to see the snow.',
+      '[img:boe_u6_kawagoe.jpg] / Old merchant houses with thick clay walls line the main street. / The Bell of Time still rings four times a day. / Candy Alley sells old-style sweets.',
+      '[img:boe_u6_myeongdong.jpg] / It is one of the busiest shopping areas in Seoul. / Many shops sell Korean cosmetics and clothes. / Street food stalls fill the roads in the evening.',
+      '[img:boe_u6_jiufen.jpg] / This hillside town was once a gold mining town. / Red lanterns hang along the narrow streets. / The tea houses have views of the ocean.',
+      '[img:boe_u6_hoian.jpg] / The ancient town is a UNESCO World Heritage Site. / The Japanese Covered Bridge is about 400 years old. / Colourful lanterns light up the streets at night.',
+      '[img:boe_u6_montmartre.jpg] / The white Sacré-Cœur stands on top of the hill. / Artists paint and sell pictures at Place du Tertre. / The hill has great views of Paris.',
+      '[img:boe_u6_laboca.jpg] / Caminito is a street of brightly painted houses. / You can watch tango dancers in the street. / It is the home of the football club Boca Juniors.',
+      '[img:boe_u6_camden.jpg] / Camden Market is a busy street market with food from all over the world. / The area is famous for live music and lively nightlife. / You can walk along the Regent’s Canal.'
     ]
   },
   { id: 'builtin-map-ab', key: 'map', title: 'Directions · Map A/B', prompt: 'Your map',
