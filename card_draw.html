@@ -249,7 +249,7 @@ textarea { width: 100%; min-height: 12em; line-height: 1.7; resize: vertical; }
 
 <script>
 /* ─── 初期カードセット ─── */
-const PAGE_VERSION = '20261104d';   // 更新のたびに変える（古い版がブラウザに残らないように）
+const PAGE_VERSION = '20261104e';   // 更新のたびに変える（古い版がブラウザに残らないように）
 /* 道案内（地図A・B）：今いる場所1か所＋行きたい場所2か所の全組み合わせ */
 function mapCards(img, label, join = 'と') {
   const P = ['butcher’s', 'post office', 'cinema', 'pharmacy', 'shoe shop', 'phone shop'], out = [];
@@ -281,18 +281,18 @@ const BUILTIN = [
     title: 'Basics of English · Unit 6 · A great place to visit',
     prompt: 'Your place',
     cards: [
-      '[img:boe_u6_asakusa.jpg] / Senso-ji and other historic buildings make Asakusa a popular tourist spot. / Nakamise is a busy market street with snacks and gifts. / The path along the Sumida River is a lovely spot for walking.',
-      '[img:boe_u6_ameyoko.jpg] / Ameyoko is a busy market street near Ueno Station. / Its stalls sell food from all over the world. / It is an ideal spot for buying cheap snacks and fresh fish.',
-      '[img:boe_u6_jimbocho.jpg] / Jimbocho has more than a hundred bookshops. / It has a relaxed atmosphere, so it is perfect for reading. / It is an ideal spot for book lovers.',
-      '[img:boe_u6_shimokitazawa.jpg] / Many small venues in Shimokitazawa have live music. / The area has lively nightlife with lots of small bars. / Second-hand clothes shops give it a relaxed atmosphere.',
-      '[img:boe_u6_omotesando.jpg] / Omotesando is one of the most beautiful tree-lined avenues in Tokyo. / Many fashion buildings here have interesting architecture. / Nearby Aoyama is a wealthy neighbourhood with expensive shops.',
-      '[img:boe_u6_yanaka.jpg] / Yanaka has a strong sense of community, with many small family shops. / Old temples and wooden houses give it a relaxed atmosphere. / Its narrow streets are a lovely spot for walking.',
-      '[img:boe_u6_minatomirai.jpg] / Minato Mirai has high-rise buildings such as Landmark Tower. / Nearby Yamashita Park, by the sea, is a lovely spot for walking. / At night, it is an ideal spot for city views.',
-      '[img:boe_u6_enoshima.jpg] / This small island has fantastic views of the ocean. / On a clear day, it is an ideal spot for seeing Mount Fuji. / It is a popular tourist spot, about an hour from Tokyo.',
-      '[img:boe_u6_gion.jpg] / Gion is full of historic buildings like wooden tea houses. / It is the most famous geisha district in Kyoto and a popular tourist spot. / The Shirakawa canal, with its willow trees, is a lovely spot for walking.',
-      '[img:boe_u6_kobe.jpg] / The city is famous for its bakeries. / Its old Western-style houses have interesting architecture. / It is an ideal spot for trying Kobe beef.',
-      '[img:boe_u6_harajuku.jpg] / It is an ideal spot for buying cute clothes and accessories. / It is a popular tourist spot, especially with young people. / Meiji Jingu, next to Harajuku Station, is a lovely spot for walking.',
-      '[img:boe_u6_shinsekai.jpg] / Shinsekai was once a run-down area, but now it is a popular tourist spot. / Tsutenkaku Tower is one of its historic buildings. / It is an ideal spot for trying kushikatsu.'
+      '[img:boe_u6_asakusa.jpg] / ・浅草寺などの歴史的な街並み / ・仲見世 / ・隅田川を散歩',
+      '[img:boe_u6_ameyoko.jpg] / ・上野駅近くのにぎやかな市場 / ・世界各国の料理の屋台 / ・安いお菓子や魚を買うのにぴったり',
+      '[img:boe_u6_jimbocho.jpg] / ・ずらりと並ぶ古書店 / ・本好きにぴったりの街 / ・静かで落ち着いた雰囲気',
+      '[img:boe_u6_shimokitazawa.jpg] / ・ライブハウスの生演奏 / ・小さなバーが多く、夜もにぎやか / ・古着屋めぐりができる、のんびりした雰囲気',
+      '[img:boe_u6_omotesando.jpg] / ・ケヤキ並木の大通り / ・ブランドのビルの個性的な建築 / ・近くの青山は高級な街',
+      '[img:boe_u6_yanaka.jpg] / ・家族経営の店が多く、地域のつながりが強い / ・お寺と木造の家の、のんびりした雰囲気 / ・細い路地を散歩',
+      '[img:boe_u6_minatomirai.jpg] / ・ランドマークタワーなどの高層ビル / ・海沿いの山下公園を散歩 / ・夜景を見るのにぴったり',
+      '[img:boe_u6_enoshima.jpg] / ・海の絶景 / ・晴れた日には富士山を見るのにぴったり / ・東京から約1時間の人気の観光地',
+      '[img:boe_u6_gion.jpg] / ・お茶屋など歴史的な街並み / ・京都で一番有名な花街で、人気の観光地 / ・柳の並ぶ白川沿いを散歩',
+      '[img:boe_u6_kobe.jpg] / ・有名なパン屋 / ・異人館の洋風建築 / ・神戸牛を食べるのにぴったり',
+      '[img:boe_u6_harajuku.jpg] / ・服やアクセサリーを買うのにぴったり / ・若者に人気の観光地 / ・明治神宮の森を散歩',
+      '[img:boe_u6_shinsekai.jpg] / ・昔はさびれた地域、今は人気の観光地 / ・通天閣などの歴史的な建物 / ・串カツを食べるのにぴったり'
     ]
   },
   { id: 'builtin-map-ab', key: 'map', title: 'Directions · Map A/B', prompt: 'Your map',
