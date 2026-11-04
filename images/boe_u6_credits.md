@@ -9,11 +9,10 @@
 - boe_u6_omotesando.jpg（Omotesando, Tokyo）: Syced / CC0 / https://commons.wikimedia.org/wiki/File:November_2024,_Buildings_in_Omotesando_-17969.jpeg
 - boe_u6_minatomirai.jpg（Minato Mirai, Yokohama）: Matthide127 / CC0 / https://commons.wikimedia.org/wiki/File:20250105_Minato_Mirai_21_(Landmark_Tower,_Queen%27s_Square_Yokohama,_Cosmo_Clock_21)_080219.jpg
 - boe_u6_enoshima.jpg（Enoshima, Kanagawa）: ウィキ太郎 (Wiki Taro) / Public domain / https://commons.wikimedia.org/wiki/File:KUGENUMA_KAIGAN_Beach_and_ENOSHIMA_Island_2018_09_16.jpg
-- boe_u6_shinsekai.jpg（Shinsekai, Osaka）: Sakai Yayoi / CC0 / https://commons.wikimedia.org/wiki/File:Osaka_Shinsekai_yoru.jpg
 - boe_u6_harajuku.jpg（Harajuku, Tokyo）: mrpbps / CC BY 2.0 / https://commons.wikimedia.org/wiki/File:Watching_ourselves_(54051248804).jpg
 - boe_u6_ueno.jpg（Ueno, Tokyo）: Syced / CC0 / https://commons.wikimedia.org/wiki/File:Ameyoko_June_2022.jpg
-- boe_u6_kyoto.jpg（Kyoto）: HAGAT hOMSZE / CC0 / https://commons.wikimedia.org/wiki/File:JP_%E6%97%A5%E6%9C%AC_Japan_%E4%BA%AC%E9%83%BD_Kyoto_Higashiyama-ku_Gion_%E8%8A%B1%E8%A6%8B%E5%B0%8F%E8%B7%AF%E9%80%9A_Hanamikoji_Dori_10am_morning_June_2026_N13P_09.jpg
 - boe_u6_nagatacho.jpg（Nagatacho, Tokyo）: Douglas Paul Perkins / CC BY 3.0 / https://commons.wikimedia.org/wiki/File:Tokyo_Diet_Building_1.jpg
+- boe_u6_takao.jpg（Takaosan, Tokyo）: Koda6029 / CC0 / https://commons.wikimedia.org/wiki/File:%E9%AB%98%E5%B0%BE%E5%B1%B1%E5%B1%B1%E9%A0%82%E3%81%8B%E3%82%89%E4%B8%B9%E6%B2%A2%E5%B1%B1%E5%9C%B0%E3%82%84%E5%AF%8C%E5%A3%AB%E5%B1%B1%E3%81%AE%E7%9C%BA%E3%82%81.jpg
 
 ## 以前のセット（画像はフォルダに残っている）
 - boe_u6_dotonbori.jpg（Dotonbori, Osaka）: Sakai Yayoi / CC0 / https://commons.wikimedia.org/wiki/File:Osaka_Dotonbori_yoru_00.jpg
@@ -32,3 +31,5 @@
 - boe_u6_yanaka.jpg（Yanaka, Tokyo）: Dick Thomas Johnson from Tokyo, Japan / CC BY 2.0 / https://commons.wikimedia.org/wiki/File:Yanaka_Ginza_(52492088947).jpg
 - boe_u6_gion.jpg（Gion, Kyoto）: HAGAT hOMSZE / CC0 / https://commons.wikimedia.org/wiki/File:JP_%E6%97%A5%E6%9C%AC_Japan_%E4%BA%AC%E9%83%BD_Kyoto_Higashiyama-ku_Gion_%E8%8A%B1%E8%A6%8B%E5%B0%8F%E8%B7%AF%E9%80%9A_Hanamikoji_Dori_10am_morning_June_2026_N13P_09.jpg
 - boe_u6_kobe.jpg（Kobe, Hyogo）: KishujiRapid / CC BY-SA 4.0 / https://commons.wikimedia.org/wiki/File:Kobe_City_Thomas_House.jpg
+- boe_u6_shinsekai.jpg（Shinsekai, Osaka）: Sakai Yayoi / CC0 / https://commons.wikimedia.org/wiki/File:Osaka_Shinsekai_yoru.jpg
+- boe_u6_kyoto.jpg（Kyoto）: HAGAT hOMSZE / CC0 / https://commons.wikimedia.org/wiki/File:JP_%E6%97%A5%E6%9C%AC_Japan_%E4%BA%AC%E9%83%BD_Kyoto_Higashiyama-ku_Gion_%E8%8A%B1%E8%A6%8B%E5%B0%8F%E8%B7%AF%E9%80%9A_Hanamikoji_Dori_10am_morning_June_2026_N13P_09.jpg
