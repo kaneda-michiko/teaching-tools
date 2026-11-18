@@ -118,8 +118,10 @@ textarea { width: 100%; min-height: 12em; line-height: 1.7; resize: vertical; }
 .drawn .meta { font-size: 12px; color: var(--text-hint); margin-top: 18px; }
 .again { margin-top: 1.25rem; }
 .drawn .text > .card-img-wrap { white-space: normal; }
+.drawn .text > .card-sub { font-size: 15px; font-weight: 400; color: var(--text-secondary); margin-top: .1em; }
 .drawn .text > .card-small { font-size: 16px; font-weight: 400; line-height: 1.8; text-align: left; }
 .preview .card-small { font-size: .85em; font-weight: 400; }
+.preview .card-sub { font-size: .8em; font-weight: 400; }
 .card-img {
   display: block; margin: 0 auto; max-width: 100%; max-height: 48vh; object-fit: contain;
   border-radius: 10px; background: var(--surface2);
@@ -251,7 +253,7 @@ textarea { width: 100%; min-height: 12em; line-height: 1.7; resize: vertical; }
 
 <script>
 /* ─── 初期カードセット ─── */
-const PAGE_VERSION = '20261118b';   // 更新のたびに変える（古い版がブラウザに残らないように）
+const PAGE_VERSION = '20261118c';   // 更新のたびに変える（古い版がブラウザに残らないように）
 /* 道案内（地図A・B）：今いる場所1か所＋行きたい場所2か所の全組み合わせ */
 function mapCards(img, label, join = 'と') {
   const P = ['butcher’s', 'post office', 'cinema', 'pharmacy', 'shoe shop', 'phone shop'], out = [];
@@ -301,12 +303,12 @@ const BUILTIN = [
     title: 'Basics of English · Unit 6 · Getting around',
     prompt: 'Your problem',
     cards: [
-      '登戸駅〜西菅団地（川崎市多摩区） / [img:boe_u6c_nishisuge.jpg] / [小]登戸駅と西菅団地を結ぶバスは、運転手が足りず、本数が減っている。夜遅くや朝早くはバスが走っておらず、お年寄りの多い団地の住民は、安く駅まで行く手段がなくて困っている。',
-      '生田駅の北側（川崎市多摩区） / [img:boe_u6c_ikuta.jpg] / [小]生田駅の北側は急な坂の上に住宅地があり、駅から家まで坂道が続く。冬は坂道が凍って、人が転んだり車がすべったりする事故が多く、夜は道が暗くて危ない。',
-      '登戸駅前（川崎市多摩区） / [img:boe_u6c_noborito.jpg] / [小]登戸駅前の道路は車とバスが多く、歩いて横断歩道を渡るのは危ない。信号待ちも長いため、電車からバスに乗り換える人は時間がかかり、朝は人と車で混雑している。',
-      '向ヶ丘遊園駅〜生田緑地（川崎市多摩区） / [img:boe_u6c_ryokuchi.jpg] / [小]向ヶ丘遊園駅から行ける生田緑地には、日本民家園や岡本太郎美術館などの見どころがあるが、それぞれが離れていて、歩いて回るのは大変だ。市は観光客にもっと町を楽しんでほしいと考えているが、緑の多い場所なので、排気ガスを出す乗り物は増やしたくない。',
-      '宿河原（川崎市多摩区） / [img:boe_u6c_shukugawara.jpg] / [小]宿河原の多摩川沿いは平らで、自転車で走りやすい道がある。しかし、駅から少し遠い場所が多いのにバスが少ないため、駅前に車が集まって道が混んでいる。',
-      '生田駅〜専修大学生田キャンパス（川崎市多摩区） / [img:boe_u6c_senshu.jpg] / [小]専修大学生田キャンパスは、生田駅から坂道を上った先にあり、歩くと時間がかかる。タクシーは学生には高く、自転車で坂を上るのはきつい。大学までの道には、自転車用のレーンがある。'
+      '登戸駅〜西菅団地 / [副]Noborito Station – Nishisuge Danchi / [img:boe_u6c_nishisuge.jpg] / [小]運転手不足により、登戸駅と西菅団地の間を走るバスの数が少なくなっている。夜遅くや朝早くはバスが走っていない。西菅団地の住民はお年寄りが多く、彼らには駅まで行く安い手段がない。',
+      '生田駅の北側 / [副]North side of Ikuta Station / [img:boe_u6c_ikuta.jpg] / [小]生田駅の北側には急な坂が多い。特に、生田交番前の坂は非常に急な坂で知られている。夜は道が暗く、お年寄りが歩くのには危ない。冬の間に道が凍ったりすると、さらに危険になる。',
+      '登戸駅前 / [副]In front of Noborito Station / [img:boe_u6c_noborito.jpg] / [小]登戸駅前の道路には車とバスが多く、朝はとても混雑している。混雑のため、電車からバスに乗り換える通勤客は時間がかかってしまう。',
+      '生田緑地 / [副]Ikuta Ryokuchi Park / [img:boe_u6c_ryokuchi.jpg] / [小]生田緑地には、日本民家園や岡本太郎美術館などの見どころがある。しかし、それぞれの建物の間には距離があり、歩いて回るのは大変だ。市は観光客にもっと町を楽しんでほしいと考えている。しかし、排気ガスを出す乗り物は増やしたくない。',
+      '宿河原 / [副]Shukugawara / [img:boe_u6c_shukugawara.jpg] / [小]宿河原には、自転車で走りやすい道がある。しかし、バスが少ないため、移動に自家用車を使う人が多い。その結果、駅前に車が集まって混雑している。',
+      '生田駅〜専修大学生田キャンパス / [副]Ikuta Station – Senshu University Ikuta Campus / [img:boe_u6c_senshu.jpg] / [小]専修大学生田キャンパスに来るためには、生田駅から坂道を使わなくてはならない。歩くととても時間がかかる。自転車で坂を上るのは大変だ。'
     ]
   },
   { id: 'builtin-map-ab', key: 'map', title: 'Directions · Map A/B', prompt: 'Your map',
@@ -373,7 +375,10 @@ function cardParts(text) {
         let t = p.replace(/^\s+|\s+$/g, ''), small = false;
         const sm = t.match(/^\[(?:小|small)\]\s*/i);   // [小] で始まる段は、小さめの細い字（説明文用）
         if (sm) { small = true; t = t.slice(sm[0].length); }
-        if (t) parts.push({ text: t, small });
+        let sub = false;
+        const sb = t.match(/^\[(?:副|sub)\]\s*/i);   // [副] で始まる段は、見出しの下に添える小さい1行（英語の地名など）
+        if (sb) { sub = true; t = t.slice(sb[0].length); }
+        if (t) parts.push({ text: t, small, sub });
       }
     });
   });
@@ -390,7 +395,7 @@ function fillCard(el, text) {
       const ln = document.createElement('a'); ln.href = im.src; ln.target = '_blank'; ln.rel = 'noopener';
       ln.appendChild(im); d.appendChild(ln);
       const zoom = document.createElement('div'); zoom.className = 'zoom-hint'; zoom.textContent = 'タップで拡大 · Tap to zoom'; d.appendChild(zoom);
-    } else { d.textContent = part.text; if (part.small) d.className = 'card-small'; }
+    } else { d.textContent = part.text; if (part.small) d.className = 'card-small'; else if (part.sub) d.className = 'card-sub'; }
     el.appendChild(d);
   });
 }
