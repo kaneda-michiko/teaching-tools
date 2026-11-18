@@ -40,5 +40,5 @@
 - boe_u6c_ikuta.jpg（生田駅）: Nesnad / CC BY 4.0 / https://commons.wikimedia.org/wiki/File:Ikuta_Station_-_Kanagawa_-_May_11_2021_various_18_46_08_713000.jpeg
 - boe_u6c_noborito.jpg（小田急登戸駅）: Hykw-a4 / CC BY-SA 3.0 / https://commons.wikimedia.org/wiki/File:OER_Noborito_Station_South_Exit_20061119.jpg
 - boe_u6c_ryokuchi.jpg（生田緑地の入口）: Syced / CC0 / https://commons.wikimedia.org/wiki/File:Ikuta_Ryokuchi_Park.jpg
-- boe_u6c_shukugawara.jpg（多摩川の宿河原堰）: Syced / CC0 / https://commons.wikimedia.org/wiki/File:Shukugawara_Sekitsutsumi.jpg
+- （2026-11-18 にカードから外した。画像は残している）boe_u6c_shukugawara.jpg（多摩川の宿河原堰）: Syced / CC0 / https://commons.wikimedia.org/wiki/File:Shukugawara_Sekitsutsumi.jpg
 - boe_u6c_senshu.jpg（専修大学生田キャンパス）: インターネット川崎ガイド / CC BY 3.0 / https://commons.wikimedia.org/wiki/File:%E5%B0%82%E4%BF%AE%E5%A4%A7%E5%AD%A6%E7%94%9F%E7%94%B0%E3%82%AD%E3%83%A3%E3%83%B3%E3%83%91%E3%82%B9_-_panoramio.jpg

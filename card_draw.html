@@ -253,7 +253,7 @@ textarea { width: 100%; min-height: 12em; line-height: 1.7; resize: vertical; }
 
 <script>
 /* ─── 初期カードセット ─── */
-const PAGE_VERSION = '20261118c';   // 更新のたびに変える（古い版がブラウザに残らないように）
+const PAGE_VERSION = '20261118d';   // 更新のたびに変える（古い版がブラウザに残らないように）
 /* 道案内（地図A・B）：今いる場所1か所＋行きたい場所2か所の全組み合わせ */
 function mapCards(img, label, join = 'と') {
   const P = ['butcher’s', 'post office', 'cinema', 'pharmacy', 'shoe shop', 'phone shop'], out = [];
@@ -307,7 +307,6 @@ const BUILTIN = [
       '生田駅の北側 / [副]North side of Ikuta Station / [img:boe_u6c_ikuta.jpg] / [小]生田駅の北側には急な坂が多い。特に、生田交番前の坂は非常に急な坂で知られている。夜は道が暗く、お年寄りが歩くのには危ない。冬の間に道が凍ったりすると、さらに危険になる。',
       '登戸駅前 / [副]In front of Noborito Station / [img:boe_u6c_noborito.jpg] / [小]登戸駅前の道路には車とバスが多く、朝はとても混雑している。混雑のため、電車からバスに乗り換える通勤客は時間がかかってしまう。',
       '生田緑地 / [副]Ikuta Ryokuchi Park / [img:boe_u6c_ryokuchi.jpg] / [小]生田緑地には、日本民家園や岡本太郎美術館などの見どころがある。しかし、それぞれの建物の間には距離があり、歩いて回るのは大変だ。市は観光客にもっと町を楽しんでほしいと考えている。しかし、排気ガスを出す乗り物は増やしたくない。',
-      '宿河原 / [副]Shukugawara / [img:boe_u6c_shukugawara.jpg] / [小]宿河原には、自転車で走りやすい道がある。しかし、バスが少ないため、移動に自家用車を使う人が多い。その結果、駅前に車が集まって混雑している。',
       '生田駅〜専修大学生田キャンパス / [副]Ikuta Station – Senshu University Ikuta Campus / [img:boe_u6c_senshu.jpg] / [小]専修大学生田キャンパスに来るためには、生田駅から坂道を使わなくてはならない。歩くととても時間がかかる。自転車で坂を上るのは大変だ。'
     ]
   },
