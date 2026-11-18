@@ -33,3 +33,12 @@
 - boe_u6_kobe.jpg（Kobe, Hyogo）: KishujiRapid / CC BY-SA 4.0 / https://commons.wikimedia.org/wiki/File:Kobe_City_Thomas_House.jpg
 - boe_u6_shinsekai.jpg（Shinsekai, Osaka）: Sakai Yayoi / CC0 / https://commons.wikimedia.org/wiki/File:Osaka_Shinsekai_yoru.jpg
 - boe_u6_kyoto.jpg（Kyoto）: HAGAT hOMSZE / CC0 / https://commons.wikimedia.org/wiki/File:JP_%E6%97%A5%E6%9C%AC_Japan_%E4%BA%AC%E9%83%BD_Kyoto_Higashiyama-ku_Gion_%E8%8A%B1%E8%A6%8B%E5%B0%8F%E8%B7%AF%E9%80%9A_Hanamikoji_Dori_10am_morning_June_2026_N13P_09.jpg
+
+## Unit 6 Getting around（#u6c、第8回の困りごと、2026-11-18〜）
+いずれも Wikimedia Commons。切り抜き・クレジットを加えて使用（地名の帯はなし）。
+- boe_u6c_nishisuge.jpg（登戸駅のバス）: 特急東海 / CC0 / https://commons.wikimedia.org/wiki/File:Kanagawa-chuo-bus_at_Noborito-station.jpg
+- boe_u6c_ikuta.jpg（生田駅）: Nesnad / CC BY 4.0 / https://commons.wikimedia.org/wiki/File:Ikuta_Station_-_Kanagawa_-_May_11_2021_various_18_46_08_713000.jpeg
+- boe_u6c_noborito.jpg（小田急登戸駅）: Hykw-a4 / CC BY-SA 3.0 / https://commons.wikimedia.org/wiki/File:OER_Noborito_Station_South_Exit_20061119.jpg
+- boe_u6c_ryokuchi.jpg（生田緑地の入口）: Syced / CC0 / https://commons.wikimedia.org/wiki/File:Ikuta_Ryokuchi_Park.jpg
+- boe_u6c_shukugawara.jpg（多摩川の宿河原堰）: Syced / CC0 / https://commons.wikimedia.org/wiki/File:Shukugawara_Sekitsutsumi.jpg
+- boe_u6c_senshu.jpg（専修大学生田キャンパス）: インターネット川崎ガイド / CC BY 3.0 / https://commons.wikimedia.org/wiki/File:%E5%B0%82%E4%BF%AE%E5%A4%A7%E5%AD%A6%E7%94%9F%E7%94%B0%E3%82%AD%E3%83%A3%E3%83%B3%E3%83%91%E3%82%B9_-_panoramio.jpg

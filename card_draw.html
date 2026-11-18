@@ -118,6 +118,8 @@ textarea { width: 100%; min-height: 12em; line-height: 1.7; resize: vertical; }
 .drawn .meta { font-size: 12px; color: var(--text-hint); margin-top: 18px; }
 .again { margin-top: 1.25rem; }
 .drawn .text > .card-img-wrap { white-space: normal; }
+.drawn .text > .card-small { font-size: 16px; font-weight: 400; line-height: 1.8; text-align: left; }
+.preview .card-small { font-size: .85em; font-weight: 400; }
 .card-img {
   display: block; margin: 0 auto; max-width: 100%; max-height: 48vh; object-fit: contain;
   border-radius: 10px; background: var(--surface2);
@@ -125,7 +127,7 @@ textarea { width: 100%; min-height: 12em; line-height: 1.7; resize: vertical; }
 .zoom-hint { font-size: 11px; color: var(--text-hint); margin-top: 4px; font-weight: 400; }
 .preview .zoom-hint { display: none; }
 .img-err { font-size: 12px; color: var(--text-hint); padding: 1.2em .5em; background: var(--surface2); border-radius: 10px; }
-@media (max-width: 480px) { .drawn .text { font-size: 22px; } }
+@media (max-width: 480px) { .drawn .text { font-size: 22px; } .drawn .text > .card-small { font-size: 15px; } }
 
 /* 画像を選ぶ・プレビュー（教員画面） */
 .picker { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; margin-top: 8px; max-height: 300px; overflow: auto; }
@@ -249,7 +251,7 @@ textarea { width: 100%; min-height: 12em; line-height: 1.7; resize: vertical; }
 
 <script>
 /* ─── 初期カードセット ─── */
-const PAGE_VERSION = '20261118a';   // 更新のたびに変える（古い版がブラウザに残らないように）
+const PAGE_VERSION = '20261118b';   // 更新のたびに変える（古い版がブラウザに残らないように）
 /* 道案内（地図A・B）：今いる場所1か所＋行きたい場所2か所の全組み合わせ */
 function mapCards(img, label, join = 'と') {
   const P = ['butcher’s', 'post office', 'cinema', 'pharmacy', 'shoe shop', 'phone shop'], out = [];
@@ -299,12 +301,12 @@ const BUILTIN = [
     title: 'Basics of English · Unit 6 · Getting around',
     prompt: 'Your problem',
     cards: [
-      '登戸駅〜西菅団地（川崎市多摩区） / 登戸駅と西菅団地を結ぶバスは、運転手が足りず、本数が減っている。夜遅くや朝早くはバスが走っておらず、お年寄りの多い団地の住民は、安く駅まで行く手段がなくて困っている。',
-      '生田駅の北側（川崎市多摩区） / 生田駅の北側は急な坂の上に住宅地があり、駅から家まで坂道が続く。冬は坂道が凍って、人が転んだり車がすべったりする事故が多く、夜は道が暗くて危ない。',
-      '登戸駅前（川崎市多摩区） / 登戸駅前の道路は車とバスが多く、歩いて横断歩道を渡るのは危ない。信号待ちも長いため、電車からバスに乗り換える人は時間がかかり、朝は人と車で混雑している。',
-      '向ヶ丘遊園駅〜生田緑地（川崎市多摩区） / 向ヶ丘遊園駅から行ける生田緑地には、日本民家園や岡本太郎美術館などの見どころがあるが、それぞれが離れていて、歩いて回るのは大変だ。市は観光客にもっと町を楽しんでほしいと考えているが、緑の多い場所なので、排気ガスを出す乗り物は増やしたくない。',
-      '宿河原（川崎市多摩区） / 宿河原の多摩川沿いは平らで、自転車で走りやすい道がある。しかし、駅から少し遠い場所が多いのにバスが少ないため、駅前に車が集まって道が混んでいる。',
-      '生田駅〜専修大学生田キャンパス（川崎市多摩区） / 専修大学生田キャンパスは、生田駅から坂道を上った先にあり、歩くと時間がかかる。タクシーは学生には高く、自転車で坂を上るのはきつい。大学までの道には、自転車用のレーンがある。'
+      '登戸駅〜西菅団地（川崎市多摩区） / [img:boe_u6c_nishisuge.jpg] / [小]登戸駅と西菅団地を結ぶバスは、運転手が足りず、本数が減っている。夜遅くや朝早くはバスが走っておらず、お年寄りの多い団地の住民は、安く駅まで行く手段がなくて困っている。',
+      '生田駅の北側（川崎市多摩区） / [img:boe_u6c_ikuta.jpg] / [小]生田駅の北側は急な坂の上に住宅地があり、駅から家まで坂道が続く。冬は坂道が凍って、人が転んだり車がすべったりする事故が多く、夜は道が暗くて危ない。',
+      '登戸駅前（川崎市多摩区） / [img:boe_u6c_noborito.jpg] / [小]登戸駅前の道路は車とバスが多く、歩いて横断歩道を渡るのは危ない。信号待ちも長いため、電車からバスに乗り換える人は時間がかかり、朝は人と車で混雑している。',
+      '向ヶ丘遊園駅〜生田緑地（川崎市多摩区） / [img:boe_u6c_ryokuchi.jpg] / [小]向ヶ丘遊園駅から行ける生田緑地には、日本民家園や岡本太郎美術館などの見どころがあるが、それぞれが離れていて、歩いて回るのは大変だ。市は観光客にもっと町を楽しんでほしいと考えているが、緑の多い場所なので、排気ガスを出す乗り物は増やしたくない。',
+      '宿河原（川崎市多摩区） / [img:boe_u6c_shukugawara.jpg] / [小]宿河原の多摩川沿いは平らで、自転車で走りやすい道がある。しかし、駅から少し遠い場所が多いのにバスが少ないため、駅前に車が集まって道が混んでいる。',
+      '生田駅〜専修大学生田キャンパス（川崎市多摩区） / [img:boe_u6c_senshu.jpg] / [小]専修大学生田キャンパスは、生田駅から坂道を上った先にあり、歩くと時間がかかる。タクシーは学生には高く、自転車で坂を上るのはきつい。大学までの道には、自転車用のレーンがある。'
     ]
   },
   { id: 'builtin-map-ab', key: 'map', title: 'Directions · Map A/B', prompt: 'Your map',
@@ -367,7 +369,12 @@ function cardParts(text) {
   masked.split(/\s*[\/／]\s*/).forEach(seg => {
     seg.split(/\u0000(\d+)\u0000/).forEach((p, i) => {
       if (i % 2) parts.push({ img: imgs[+p] });
-      else if (p.trim()) parts.push({ text: p.replace(/^\s+|\s+$/g, '') });
+      else if (p.trim()) {
+        let t = p.replace(/^\s+|\s+$/g, ''), small = false;
+        const sm = t.match(/^\[(?:小|small)\]\s*/i);   // [小] で始まる段は、小さめの細い字（説明文用）
+        if (sm) { small = true; t = t.slice(sm[0].length); }
+        if (t) parts.push({ text: t, small });
+      }
     });
   });
   return parts;
@@ -383,7 +390,7 @@ function fillCard(el, text) {
       const ln = document.createElement('a'); ln.href = im.src; ln.target = '_blank'; ln.rel = 'noopener';
       ln.appendChild(im); d.appendChild(ln);
       const zoom = document.createElement('div'); zoom.className = 'zoom-hint'; zoom.textContent = 'タップで拡大 · Tap to zoom'; d.appendChild(zoom);
-    } else d.textContent = part.text;
+    } else { d.textContent = part.text; if (part.small) d.className = 'card-small'; }
     el.appendChild(d);
   });
 }
